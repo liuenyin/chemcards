@@ -1,0 +1,1 @@
+{"name":"chemcards","private":true,"type":"module","scripts":{"build":"node scripts/build.mjs","dev":"node scripts/dev.mjs","db:generate":"drizzle-kit generate","test":"node tests/engine.test.mjs && node tests/multiplayer.test.mjs"},"devDependencies":{"esbuild":"^0.25.0","drizzle-kit":"^0.31.0","drizzle-orm":"^0.44.0"}}

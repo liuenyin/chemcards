@@ -21,6 +21,9 @@ export const ELEMENTS = {
  I:{name:'碘',z:53,mass:126904,bg:'#4e4353',ink:'#f4e9f0',accent:'#8b7290',weight:24,color:'紫黑色晶体'}
 };
 export function parseFormula(formula){
+ if(typeof formula!=='string'||formula.length>100)throw Error('化学式过长');
+ formula=formula.replace(/[₀₁₂₃₄₅₆₇₈₉]/g,c=>'₀₁₂₃₄₅₆₇₈₉'.indexOf(c)).replace(/\s/g,'');
+ if(/[·.]/.test(formula)){const total={};for(const fragment of formula.split(/[·.]/)){const m=fragment.match(/^(\d+)?(.+)$/);if(!m)throw Error('无效水合物化学式');const k=Number(m[1]||1);if(k<1||k>100)throw Error('无效系数');for(const[e,n]of Object.entries(parseFormula(m[2])))total[e]=(total[e]||0)+n*k;}return total;}
  const tokens=formula.match(/[A-Z][a-z]?|\d+|[()]/g);if(!tokens||tokens.join('')!==formula)throw Error('无效化学式');let i=0;
  function group(nested=false){const out={};while(i<tokens.length){let t=tokens[i++];if(t===')'){if(!nested)throw Error('括号不匹配');return out;}let part;if(t==='(')part=group(true);else{if(!ELEMENTS[t])throw Error('不支持的元素 '+t);part={[t]:1};}const n=/^\d+$/.test(tokens[i]||'')?Number(tokens[i++]):1;if(n<1)throw Error('下标必须大于零');for(const [e,c]of Object.entries(part))out[e]=(out[e]||0)+c*n;}if(nested)throw Error('括号不匹配');return out;}return group();
 }
@@ -30,7 +33,7 @@ export const atomCount=counts=>Object.values(counts).reduce((a,b)=>a+b,0);
 export const massOf=counts=>Object.entries(counts).reduce((s,[e,n])=>s+ELEMENTS[e].mass*n,0);
 export const expand=counts=>Object.entries(counts).flatMap(([e,n])=>Array(n).fill(e));
 export function formulaOf(counts){const keys=Object.keys(counts).filter(e=>counts[e]>0);keys.sort((a,b)=>{if(counts.C){if(a==='C')return -1;if(b==='C')return 1;if(a==='H')return -1;if(b==='H')return 1;}return ELEMENTS[a].z-ELEMENTS[b].z;});return keys.map(e=>e+(counts[e]>1?counts[e]:'')).join('');}
-export const formatFormula=f=>f.replace(/(\d+)/g,'<sub>$1</sub>');
+export const formatFormula=f=>f.split(/([·.])/).map((part,i)=>{if(part==='·'||part==='.')return part;const coefficient=i>0?(part.match(/^\d+/)?.[0]||''):'';return coefficient+part.slice(coefficient.length).replace(/(\d+)/g,'<sub>$1</sub>');}).join('');
 export const massText=m=>(m/1000).toFixed(3);
 export const SUBSTANCES=[];
 function add(name,formula,category,graph=null){const counts=parseFormula(formula);SUBSTANCES.push({id:'s'+SUBSTANCES.length,name,formula,category,counts,key:keyOf(counts),mass:massOf(counts),size:atomCount(counts),graph});}
@@ -76,7 +79,34 @@ for(const [e,name]of [['Cl','氯'],['Br','溴'],['I','碘']])for(let n=1;n<=3;n+
 organic('二氯甲烷',['C','Cl','Cl'],[[0,1,1],[0,2,1]],'Cl—CH₂—Cl');
 organic('氯仿',['C','Cl','Cl','Cl'],[[0,1,1],[0,2,1],[0,3,1]],'一个 CH 与三个 Cl 分别以单键相连');
 organic('四氯化碳',['C','Cl','Cl','Cl','Cl'],[[0,1,1],[0,2,1],[0,3,1],[0,4,1]],'一个 C 与四个 Cl 分别以单键相连');
+// Conventional inorganic formulae are curated display strings. Count keys are
+// only for matching, never used to rewrite NH3, NaOH, KSCN, or coordination salts.
+const supplements=[
+ ['硫氰酸钾','KSCN'],['硫氰酸钠','NaSCN'],['硫氰酸铵','NH4SCN'],['硫氰酸银','AgSCN'],['硫氰酸亚铜','CuSCN'],['硫氰酸钙','Ca(SCN)2'],['硫氰酸锌','Zn(SCN)2'],
+ ['氰酸钾','KOCN'],['氰酸钠','NaOCN'],['氰酸铵','NH4OCN'],['氰化钾','KCN'],['氰化钠','NaCN'],['氰化银','AgCN'],['氰化亚铜','CuCN'],['氰化氢','HCN'],
+ ['亚铁氰化钾','K4Fe(CN)6'],['铁氰化钾','K3Fe(CN)6'],['亚铁氰化钠','Na4Fe(CN)6'],
+ ['硫代硫酸钠','Na2S2O3'],['硫代硫酸钾','K2S2O3'],['硫代硫酸铵','(NH4)2S2O3'],['连二亚硫酸钠','Na2S2O4'],['焦亚硫酸钠','Na2S2O5'],['焦亚硫酸钾','K2S2O5'],['过二硫酸钠','Na2S2O8'],['过二硫酸钾','K2S2O8'],['过二硫酸铵','(NH4)2S2O8'],
+ ['次氯酸','HClO'],['氯酸','HClO3'],['高氯酸','HClO4'],['溴酸','HBrO3'],['碘酸','HIO3'],['次氯酸钠','NaClO'],['次氯酸钙','Ca(ClO)2'],['亚氯酸钠','NaClO2'],['氯酸钠','NaClO3'],['氯酸钾','KClO3'],['高氯酸钠','NaClO4'],['高氯酸钾','KClO4'],['高氯酸铵','NH4ClO4'],['溴酸钾','KBrO3'],['碘酸钾','KIO3'],['碘酸钠','NaIO3'],
+ ['亚磷酸','H3PO3'],['次磷酸','H3PO2'],['焦磷酸','H4P2O7'],['次磷酸钠','NaH2PO2'],['焦磷酸钠','Na4P2O7'],['磷酸二氢钾','KH2PO4'],['磷酸氢二钾','K2HPO4'],['磷酸钾','K3PO4'],['磷酸二氢铵','NH4H2PO4'],['磷酸氢二铵','(NH4)2HPO4'],['磷酸氢钙','CaHPO4'],['磷酸二氢钙','Ca(H2PO4)2'],
+ ['硫酸氢钠','NaHSO4'],['硫酸氢钾','KHSO4'],['硫酸氢铵','NH4HSO4'],['亚硫酸氢钠','NaHSO3'],['亚硫酸氢钾','KHSO3'],['亚硫酸钾','K2SO3'],['硫酸钾','K2SO4'],['硫酸铁','Fe2(SO4)3'],['硫酸铝','Al2(SO4)3'],['硫酸银','Ag2SO4'],
+ ['硝酸钙','Ca(NO3)2'],['硝酸镁','Mg(NO3)2'],['硝酸铜','Cu(NO3)2'],['硝酸锌','Zn(NO3)2'],['硝酸铁','Fe(NO3)3'],['硝酸铝','Al(NO3)3'],['亚硝酸钾','KNO2'],
+ ['碳酸氢钾','KHCO3'],['碳酸铵','(NH4)2CO3'],['碳酸银','Ag2CO3'],['碳酸锌','ZnCO3'],['碳酸亚铁','FeCO3'],['碳酸氢钙','Ca(HCO3)2'],['碱式碳酸铜','Cu2(OH)2CO3'],
+ ['硫化钾','K2S'],['硫化锌','ZnS'],['硫化铜','CuS'],['硫化亚铜','Cu2S'],['二硫化铁','FeS2'],['硫化钙','CaS'],['硫氢化钠','NaHS'],['硫氢化钾','KHS'],['硫氢化铵','NH4HS'],
+ ['溴化镁','MgBr2'],['溴化钙','CaBr2'],['溴化锌','ZnBr2'],['溴化铜','CuBr2'],['碘化镁','MgI2'],['碘化钙','CaI2'],['碘化锌','ZnI2'],['碘化亚铜','CuI'],['氯化亚铜','CuCl'],['氢氧化锌','Zn(OH)2'],
+ ['氢化钠','NaH'],['氢化钾','KH'],['氢化钙','CaH2'],['氢化镁','MgH2'],['氮化镁','Mg3N2'],['氮化铝','AlN'],['氮化硅','Si3N4'],['碳化钙','CaC2'],['碳化硅','SiC'],['磷化钙','Ca3P2'],['磷化铝','AlP'],['磷化氢','PH3'],['四氯化硅','SiCl4'],['四氧化六磷','P4O6'],['十氧化四磷','P4O10'],['氯化碘','ICl'],['三氯化碘','ICl3'],['二氧化氯','ClO2'],
+ ['胆矾','CuSO4·5H2O'],['绿矾','FeSO4·7H2O'],['芒硝','Na2SO4·10H2O'],['石膏','CaSO4·2H2O'],['明矾','KAl(SO4)2·12H2O'],['大苏打','Na2S2O3·5H2O'],['七水硫酸镁','MgSO4·7H2O'],
+ ['甲酸钠','HCOONa'],['甲酸钾','HCOOK'],['乙酸钠','CH3COONa'],['乙酸钾','CH3COOK'],['乙酸铵','CH3COONH4'],['乙酸钙','Ca(CH3COO)2'],['乙酸银','CH3COOAg'],['草酸钠','Na2C2O4'],['草酸钙','CaC2O4']
+];
+for(const [name,formula]of supplements)if(!SUBSTANCES.some(s=>s.formula===formula))add(name,formula,formula.includes('·')?'水合物':'无机物');
+// Correct nomenclature for the common molecular phosphorus oxide.
+const pOxide=SUBSTANCES.find(s=>s.formula==='P4O6');if(pOxide)pOxide.name='六氧化四磷';
+organic('乳酸',['C','C','O','C','O','O'],[[0,1,1],[1,2,1],[1,3,1],[3,4,2],[3,5,1]],'CH₃—CH(OH)—C(=O)—OH');
+organic('草酸',['O','C','C','O','O','O'],[[0,1,1],[1,2,1],[2,3,1],[1,4,2],[2,5,2]],'HO—C(=O)—C(=O)—OH');
+for(const [name,isKetone]of [['葡萄糖（开链式）',false],['果糖（开链式）',true]]){const atoms=[...Array(6).fill('C'),...Array(6).fill('O')],bonds=chain(6);for(let i=0;i<6;i++)bonds.push([i,i+6,i===(isKetone?1:0)?2:1]);organic(name,atoms,bonds,'开链六碳糖：一个羰基，其余各碳连接羟基；此处不区分立体构型');}
 export const BY_KEY=new Map();for(const s of SUBSTANCES){if(!BY_KEY.has(s.key))BY_KEY.set(s.key,[]);BY_KEY.get(s.key).push(s);}
+export const compositionText=counts=>Object.entries(counts).filter(([,n])=>n>0).sort(([a],[b])=>ELEMENTS[a].z-ELEMENTS[b].z).map(([e,n])=>`${e} × ${n}`).join(' · ');
+export function explicitGraph(graph){const nodes=graph.nodes.map(n=>({e:n.e,label:n.e})),bonds=graph.bonds.map(b=>[...b]);graph.nodes.forEach((n,i)=>{for(let h=0;h<n.h;h++){bonds.push([i,nodes.length,1]);nodes.push({e:'H',label:'H'});}});return{nodes,bonds};}
+export function structureMatches(target,drawing){if(!drawing||!Array.isArray(drawing.nodes)||!Array.isArray(drawing.bonds))return false;const g=explicitGraph(target);if(g.nodes.length!==drawing.nodes.length)return false;const assigned=new Set(),mapping=[];for(const node of drawing.nodes){const i=g.nodes.findIndex((n,j)=>!assigned.has(j)&&n.e===node.e);if(i<0)return false;mapping.push(i);assigned.add(i);}if(drawing.bonds.some(b=>!Array.isArray(b)||b.length!==3||b.some(x=>!Number.isInteger(x))||b[0]<0||b[1]<0||b[0]>=mapping.length||b[1]>=mapping.length))return false;return graphMatches(g,drawing.bonds.map(([a,b,o])=>[mapping[a],mapping[b],o]));}
 export function graphMatches(graph,bonds){
  const n=graph.nodes.length;if(bonds.length!==graph.bonds.length)return false;
  const matrix=bs=>{const m=Array.from({length:n},()=>Array(n).fill(0));for(const [a,b,o]of bs){if(a===b||a<0||b<0||a>=n||b>=n||![1,2,3].includes(o)||m[a][b])return null;m[a][b]=m[b][a]=o;}return m;};
