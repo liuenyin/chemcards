@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+// Supply a local Playwright installation without adding a production dependency.
+const modulePath=process.env.PLAYWRIGHT_MODULE;
+if(!modulePath)throw Error('Set PLAYWRIGHT_MODULE to a local playwright-core index.mjs');
+const {chromium}=await import(pathToFileURL(modulePath));
+const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH});
+const context=await browser.newContext({viewport:{width:1440,height:1000},deviceScaleFactor:1});
+const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+await page.evaluate(async()=>{const {newGame}=await import('./engine.mjs');localStorage.setItem('chemcards-game-v1',JSON.stringify(newGame({mode:'A',size:108,seed:12345})));});
+await page.reload({waitUntil:'networkidle'});
+await fs.mkdir('artifacts',{recursive:true});
+await page.screenshot({path:'artifacts/desktop.png',fullPage:true});
+assert.equal(await page.locator('[data-card]').count(),36);
+await page.locator('#hint-btn').click();assert((await page.locator('.atom-card.selected').count())>0);assert(await page.locator('#play-btn').isEnabled());
+await page.locator('#clear-btn').click();assert.equal(await page.locator('.atom-card.selected').count(),0);
+await page.locator('[data-panel="library"]').click();await page.locator('#library-search').fill('乙醇');assert.equal(await page.locator('[data-detail]').count(),1);await page.locator('[data-detail]').click();assert((await page.locator('.structure-node').count())>0);await page.locator('[data-close]').first().click();
+await page.locator('#deck-info').click();assert((await page.locator('.rules-table tbody tr').count())>6);await page.locator('[data-close]').click();
+await page.locator('[data-mode="B"]').click();await page.locator('[data-option="size"][data-value="72"]').click();await page.locator('#start-game').click();assert.equal(await page.locator('[data-card]').count(),9);assert.equal(await page.locator('#pass-btn').textContent(),'摸一张');await page.locator('#pass-btn').click();await page.waitForTimeout(2800);assert((await page.locator('[data-card]').count())>=9);
+await page.locator('#rules-btn').click();assert((await page.locator('dialog').textContent()).includes('连续 6 个回合'));await page.locator('[data-close]').first().click();
+await page.setViewportSize({width:390,height:844});await page.screenshot({path:'artifacts/mobile.png',fullPage:true});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'No mobile horizontal overflow');
+await page.setViewportSize({width:1440,height:1000});
+// Construct a conserved fixture with ethanol available in the human hand.
+await page.evaluate(async()=>{const {newGame}=await import('./engine.mjs');const g=newGame({mode:'A',size:72,seed:42});const desired=['C','C','H','H','H','H','H','H','O'];const all=[...g.deck];for(const e of desired){const at=all.indexOf(e);if(at<0)throw Error('fixture needs '+e);all.splice(at,1);}g.hands=[desired.concat(all.splice(0,4)),all.splice(0,27),all];localStorage.setItem('chemcards-game-v1',JSON.stringify(g));});
+await page.reload({waitUntil:'networkidle'});
+await page.locator('[data-panel="library"]').click();await page.locator('#library-search').fill('乙醇');await page.locator('[data-detail]').click();await page.locator('#detail-stage').click();await page.locator('#play-btn').click();
+if(await page.getByRole('heading',{name:'选择你要组成的物质'}).count())await page.locator('dialog .recipe').filter({hasText:'乙醇'}).click();
+assert.equal(await page.getByRole('heading',{name:'把乙醇拼出来'}).count(),1);
+await page.locator('#confirm-structure').click();assert((await page.locator('#structure-status').textContent()).includes('还没有'));
+await page.locator('[data-node="0"]').click();await page.locator('[data-node="1"]').click();await page.locator('[data-node="1"]').click();await page.locator('[data-node="2"]').click();
+await page.screenshot({path:'artifacts/structure.png',fullPage:true});await page.locator('#confirm-structure').click();assert.equal(await page.locator('dialog[open]').count(),0);assert.equal(await page.locator('#arena .compound-name').textContent(),'乙醇');
+await page.reload({waitUntil:'networkidle'});assert((await page.locator('[data-card]').count())<13,'game survives reload');
+assert.deepEqual(errors,[]);console.log(JSON.stringify({status:'passed',errors,checks:['desktop render','hint and selection','library and detail','deck composition','mode and deck settings','B draw and bots','rules modal','mobile overflow','organic invalid and valid structure','local resume']},null,2));
+await browser.close();

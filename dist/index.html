@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#153c35"><meta name="description" content="一张牌，一个原子。组出真实物质，与两位电脑玩家进行质量竞技或化学接龙。">
+  <title>元素之间 · 化学扑克牌</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='7' fill='%23153c35'/%3E%3Ctext x='20' y='29' text-anchor='middle' font-family='Georgia' font-size='28' fill='%23f4eedf'%3EC%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css"><script type="module" src="app.mjs"></script>
+</head>
+<body>
+  <header class="masthead"><a class="brand" href="./" aria-label="元素之间首页"><span class="brand-mark">C<span>6</span></span><div><strong>元素之间</strong><small>CHEMICAL CARD CLUB</small></div></a><nav aria-label="游戏模式"><button data-mode="A" class="mode active">A <span>质量竞技</span></button><button data-mode="B" class="mode">B <span>化学接龙</span></button></nav><div class="header-actions"><button id="rules-btn" class="text-btn">玩法说明</button><button id="new-btn" class="outline-btn">新的一局 <span>↗</span></button></div></header>
+  <main id="app"><section class="game-column"><div class="table-heading"><div><span class="eyebrow">THE ELEMENT TABLE</span><h1 id="mode-title">质量竞技<span> / 01</span></h1></div><button id="deck-info" class="deck-badge">108 张 · 配方混合牌库</button></div><section class="table-surface" aria-label="对局桌面"><div id="opponents" class="opponents"></div><div id="arena" class="arena"></div><div id="table-foot" class="table-foot"></div></section><section class="hand-section"><div class="hand-heading"><div><h2>你的手牌 <span id="hand-count"></span></h2><p id="turn-status" role="status" aria-live="polite"></p></div><label class="sort-control">自动排序 <select id="sort"><option value="element">原子序数</option><option value="mass">质量从大到小</option></select></label></div><div id="hand" class="hand" aria-label="你的原子牌"></div><div class="selection-bar"><div id="selection-info"></div><div class="play-actions"><button id="clear-btn" class="text-btn">清空</button><button id="hint-btn" class="outline-btn">找个组合</button><button id="pass-btn" class="outline-btn">过牌</button><button id="play-btn" class="primary-btn">出牌 <span>↗</span></button></div></div></section></section><aside class="sidebar"><div class="notebook-heading"><span class="eyebrow">FIELD NOTES</span><h2>桌边手册</h2><p>每一种组合，都有迹可循。</p></div><div class="side-tabs" role="tablist"><button role="tab" aria-selected="true" data-panel="suggestions">可出组合</button><button role="tab" aria-selected="false" data-panel="library">物质图鉴</button><button role="tab" aria-selected="false" data-panel="history">牌局记录</button></div><div id="side-content"></div><div class="side-footer"><span class="mini-element">Br</span><p>卡面取色于元素单质。<br>无色气体保留纸白，细线区分类别。</p></div></aside></main>
+  <footer class="page-footer"><span>一张牌，一个原子。</span><span>本机对战 · 两位电脑玩家 · 无需登录</span></footer>
+  <dialog id="modal"><div id="modal-content"></div></dialog><div id="toast" role="status" aria-live="polite"></div>
+</body></html>
