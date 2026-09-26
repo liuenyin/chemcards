@@ -52,6 +52,7 @@ function snapshot(room, revision, member) {
    relayRescue: g.relayRescue,
    mode: g.mode,
    size: g.size,
+   initialHand: g.initialHand,
    current: g.current,
    winner: g.winner,
    turn: g.turn,
@@ -77,13 +78,14 @@ async function bodyOf(req) {
 }
 
 function optionsOf(body) {
- const mode = body.mode ?? 'A', size = body.size ?? 108, strategy = body.strategy ?? 'random',
+ const mode = body.mode ?? 'A', size = mode === 'B' ? 108 : body.size ?? 108, initialHand = mode === 'B' ? body.initialHand ?? 9 : null, strategy = body.strategy ?? 'random',
        structureMode = body.structureMode ?? 'quick', turnSeconds = body.turnSeconds ?? (structureMode === 'structure' ? 90 : 30),
-       relayRescue = body.relayRescue ?? true;
- if (!['A', 'B'].includes(mode) || ![54, 72, 108].includes(size) || !['mixed', 'random'].includes(strategy) || !['quick', 'structure'].includes(structureMode) || ![0, 30, 60, 90, 120].includes(turnSeconds) || typeof relayRescue !== 'boolean') {
+       relayRescue = body.relayRescue ?? true, hintsEnabled = body.hintsEnabled ?? true;
+ if (!['A', 'B'].includes(mode) || !Number.isInteger(size) || size < 16 || size > 108 || (mode === 'B' && (!Number.isInteger(initialHand) || initialHand < 2 || initialHand > 12)) || !['mixed', 'random'].includes(strategy) || !['quick', 'structure'].includes(structureMode) || ![0, 30, 60, 90, 120].includes(turnSeconds) || typeof relayRescue !== 'boolean') {
   fail('房间设置无效');
  }
- return {mode, size, strategy, structureMode, turnSeconds, relayRescue};
+ if(typeof hintsEnabled !== 'boolean')fail('成牌提示设置无效');
+ return {mode, size, initialHand, hintsEnabled, strategy, structureMode, turnSeconds, relayRescue: mode === 'B' && relayRescue};
 }
 
 const expiresAfter = 24 * 60 * 60 * 1000;
@@ -91,7 +93,8 @@ function nextDeadline(room) { return room.options.turnSeconds === 0 ? null : Dat
 
 function timedMove(game) {
  const player = game.current;
- const next = game.mode === 'A' && !game.table ? play(game, 'atom-' + game.hands[player][0], [game.hands[player][0]]) : skip(game);
+ const single = game.mode === 'A' && !game.table ? legalMoves(game).find(m=>m.cards.length===1&&m.cards[0]===game.hands[player][0]) : null;
+ const next = single ? play(game, single.id, single.cards) : skip(game);
  next.history.unshift({type: 'timeout', player, turn: game.turn});
  return next;
 }

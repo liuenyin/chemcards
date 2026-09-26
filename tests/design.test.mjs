@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import {pathToFileURL} from 'node:url';
 import {newGame,auditGame} from '../dist/engine.mjs';
-const game=newGame({mode:'B',players:6,size:54,strategy:'random',seed:2026});
-assert.deepEqual(game.hands.map(h=>h.length),[8,8,8,8,8,8]);
-assert.equal(game.stock.length,5);assert(auditGame(game));
+const game=newGame({mode:'B',players:6,initialHand:12,strategy:'random',seed:2026});
+assert.deepEqual(game.hands.map(h=>h.length),[12,12,12,12,12,12]);
+assert.equal(game.stock.length,35);assert(auditGame(game));
 const {chromium}=await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH});
 try {
@@ -16,14 +16,14 @@ try {
  assert.equal(await page.locator('#create-room').textContent(),'创建房间');
  assert.equal(await page.locator('#entrance-error').textContent(),'');
  await page.locator('[data-mode="B"]').click();
- for(const [value,label] of [['0','54 张'],['1','72 张'],['2','108 张']]){
-  await page.locator('#create-size').fill(value);
-  assert.equal(await page.locator('#create-size-label').textContent(),label);
+ for(const [value,label] of [['2','2 张'],['7','7 张'],['12','12 张']]){
+  await page.locator('#create-initial').fill(value);
+  assert.equal(await page.locator('#create-initial-label').textContent(),label);
  }
- await page.locator('#create-size').fill('0');
+ await page.locator('#create-initial').fill('12');
  await page.screenshot({path:'artifacts/design-home-mobile.png',fullPage:true});
  await page.locator('#create-name').fill('小牌库');await page.locator('#create-room').click();
- assert.equal(await page.locator('#option-size-label').textContent(),'54 张');
+ assert.equal(await page.locator('#option-initial-label').textContent(),'12 张');
  assert.equal(await page.locator('#option-mode').inputValue(),'B');
  await page.locator('#collection-btn').click();
  for(const width of [320,390,1100]){

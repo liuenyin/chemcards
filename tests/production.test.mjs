@@ -30,10 +30,10 @@ async function stop(){if(child&&child.exitCode===null){const ended=once(child,'e
 try{
  await start();assert((await (await fetch(base)).text()).includes('化学扑克牌'));
  const created=await fetch(base+'/api/rooms',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:'持久化检查',size:54,mode:'B'})});
- assert.equal(created.status,201);const {room,token}=await created.json();assert.equal(room.options.size,54);
+ assert.equal(created.status,201);const {room,token}=await created.json();assert.equal(room.options.size,108);
  await stop();await start();
  const response=await fetch(base+'/api/rooms/'+room.code,{headers:{authorization:'Bearer '+token}});
- assert.equal(response.status,200);const restored=await response.json();assert.equal(restored.id,room.id);assert.equal(restored.options.size,54);
+ assert.equal(response.status,200);const restored=await response.json();assert.equal(restored.id,room.id);assert.equal(restored.options.size,108);
  assert.equal((await fetch(base+'/api/rooms/'+room.code)).status,401);
  console.log('Production entry passed: static assets, health, 54-card room creation, restart persistence and private access.');
 } finally {await stop();await fs.rm(folder,{recursive:true,force:true});}

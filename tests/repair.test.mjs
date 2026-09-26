@@ -13,8 +13,8 @@ assert.deepEqual(parseFormula('K4[Fe(CN)6]'),{K:4,Fe:1,C:6,N:6});
 const frequencies=countCards(POOL),sum=Object.values(ELEMENTS).reduce((a,e)=>a+e.weight,0);
 assert.equal(POOL.length,1800);for(const [e,v]of Object.entries(ELEMENTS)){assert(frequencies[e]>0);assert(Math.abs(frequencies[e]-v.weight/sum*1800)<1,'largest remainder allocation '+e);}
 let games=0,maxTurns=0;
-for(const players of [2,3,4,5,6])for(const size of [54,72,108])for(let seed=0;seed<10;seed++){
- let g=newGame({mode:'B',players,size,strategy:'random',seed,relayRescue:true});
+for(const players of [2,3,4,5,6])for(const initialHand of [2,7,12])for(let seed=0;seed<10;seed++){
+ let g=newGame({mode:'B',players,initialHand,strategy:'random',seed,relayRescue:true});
  while(g.winner===null&&g.turn<200){const move=chooseBotMove(g);assert(move);g=play(g,move.id,move.cards);assert(auditGame(g));}
  assert.notEqual(g.winner,null);maxTurns=Math.max(maxTurns,g.turn);games++;
 }
