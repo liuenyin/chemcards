@@ -42,6 +42,107 @@
   border-top: 1px solid #cadfd9;
 }
 
+
+/* Consolidated Hand Bar */
+.hand-bar {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 8px 14px;
+  margin: 6px 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.hand-bar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hand-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.turn-status {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.turn-status.my-turn {
+  color: #047857;
+}
+
+.hand-count {
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.hand-count b {
+  color: #0f172a;
+}
+
+.hand-selection {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #475569;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selection-badge {
+  background: #e2e8f0;
+  color: #334155;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.selection-target {
+  color: #047857;
+  font-weight: 500;
+}
+
+.selection-target strong {
+  font-size: 14px;
+}
+
+.gesture-hint {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.hand-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.hand-actions .btn {
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.hand-actions .quiet {
+  padding: 5px 9px;
+  font-size: 12px;
+}
+
 /* Turn Ribbon Banner */
 .turn-ribbon {
   display: flex;
