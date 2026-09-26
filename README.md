@@ -1,4 +1,4 @@
-# 元素局 · 多人化学扑克牌
+# 化学扑克牌 · chemical cards
 
 2—6 人联网房间。一名房主创建，朋友通过房间码或链接加入；全部准备后开始。保留一人对两位电脑的本机练习。
 
@@ -14,7 +14,8 @@
 - 发牌、抽牌、出牌动效；B 模式可直接点击牌堆摸牌。未轮到自己时可以预选，提示组合按需打开。
 - 真正的单原子自由画布：拖动、单/双/三键、擦键、撤销重做、自动补氢；完整结构图同构验证接受等价画法。
 - 四位数字房间码（0000—9999），空号选择和冲突重试；24 小时无人访问的房间回收。刷新不改变服务器保存的回合截止时间。
-- 默认自由随机，从 1800 张牌池不放回抽取 72/108 张；采用最大余数法分配整数张数，图鉴中可查看实际概率。
+- 默认自由随机，从 1800 张牌池不放回抽取 54/72/108 张，以滑动条选择；采用最大余数法分配整数张数，图鉴中可查看实际概率。碳为 101 张（约 5.61%），重元素权重已降低。54 张的六人 B 局每人初始 8 张，另留 1 张桌面原子和 5 张摸牌。
+- 图鉴统一提供物质查询、合成记录及联网房间的补充物质入口，不再提供重复的物质库入口。采用可搜索的方格，区分已合成与未合成；窄屏两列、普通手机三列。金属、石墨、气体等牌面有不同材质。部分物质带短暂颜色提示，设置中可关闭，不改变牌局规则。
 - B 默认开启“解套”：无任何合法组合时才可单原子领出，旧 C 进入弃牌堆，新原子留给下家。可在房间设置中关闭，恢复严格接龙。
 - 按需展开成牌候选抽屉；独立音效、音量和震动设置；本浏览器合成图鉴（含练习）；含牌池中不超过 4 张元素的物质有轻量稀有提示。
 
@@ -36,12 +37,31 @@ npm run dev
 - `server/worker.mjs`：房间与对局 API；静态资产打包嵌入 Worker。
 - `dist/server/index.js`：由构建生成，未纳入源码提交。
 - `.openai/hosting.json`：Sites 项目及逻辑 D1 绑定 `DB`。
-- `db/schema.ts` / `drizzle/`：数据库结构和生成迁移。生产环境由发布流程应用迁移，不在请求中创建表。
+- `db/schema.ts` / `drizzle/`：数据库结构和生成迁移。Node 服务启动时应用 SQLite 迁移；Worker 也支持首次请求时创建房间表。
+
+## Node / Zeabur 部署准备
+
+代码已提供独立生产入口及 Dockerfile；尚未连接或部署到 Zeabur。
+
+本地验证生产入口：
+
+```sh
+npm ci
+npm run build
+npm start
+```
+
+默认监听 `0.0.0.0:8080`，健康检查路径 `/api/health`。`PORT` 可修改端口；`DATABASE_PATH` 指定 SQLite 文件（本机默认 `data/rooms.sqlite`）；`PUBLIC_ORIGIN` 可设为完整外部域名，例如 `https://cards.example.com`。
+
+在 Zeabur 选择该项目时，以包含 `package.json` 和 `Dockerfile` 的目录为构建根目录（当前 GitHub 仓库根目录；本地为 `site`），使用这里的 `Dockerfile`，暴露 8080 端口。容器数据库为 `/data/rooms.sqlite`，需要给 `/data` 挂载持久化卷，否则重建容器会丢失房间。当前 SQLite 方案使用单个服务实例。合成图鉴与个人设置仍保存在玩家浏览器中。
+
+Dockerfile 使用 Node 24，运行阶段无需安装开发依赖。Dockerfile 本身尚未在本机构建（未安装 Docker）；生产 Node 入口另有启动、重启持久化测试。参考 [Zeabur Dockerfile 部署说明](https://zeabur.com/docs/en-US/deploy/methods/dockerfile)。`wrangler.jsonc` 属于另一套 Worker/D1 部署配置，其中数据库 ID 为占位值，Zeabur 的 Node 入口不使用它。
 
 ## 验证
 
 ```sh
 npm test
+npm run test:production
 # 启动本地服务、设置下文的浏览器环境变量后：
 npm run test:browser
 ```
@@ -50,9 +70,11 @@ npm run test:browser
 `tests/multiplayer.test.mjs`：2—6 人、私有手牌、角色权限、并发重复出牌拒绝、服务端结构校验、共同收录与返回等候室。
 `tests/browser.test.mjs`：两个独立浏览器身份走完整建房/加入/准备/有机物出牌/同步/刷新重连/投票/B 模式流程。运行前启动本地服务，并设置 `PLAYWRIGHT_MODULE`（playwright-core/index.mjs）和 `CHROMIUM_PATH`。
 `tests/hand.test.mjs`：真实指针点击、一次横划选择十张牌、拖出整组、排序保留选择和手机手牌滚动；使用相同浏览器环境变量。
-`tests/repair.test.mjs`：化学式独立回归样例、图与配方一致性、形式电荷、实际牌池、100 局完全随机 B（2—6 人、72/108 张）、20 路并发建房、截止时间保持、离线超时与并发结算、快速局/结构局和房间回收。
+`tests/repair.test.mjs`：化学式独立回归样例、图与配方一致性、形式电荷、实际牌池、150 局完全随机 B（2—6 人、54/72/108 张）、20 路并发建房、截止时间保持、离线超时与并发结算、快速局/结构局和房间回收。
 `tests/experience.test.mjs`：手机 54 张牌均可访问、候选抽屉、快速有机物出牌、图鉴记录、声音设置持久化、概率表和硝基苯自由结构操作。
 `tests/hydrogen-layout.test.mjs`：补氢时保持骨架位置、边缘避让和原子间距。
+`tests/design.test.mjs`：54 张六人接龙、滑动条与房间设置一致、320/390/1100 像素方格图鉴、搜索和特效开关。
+`tests/production.test.mjs`：独立生产服务的静态资源、健康检查、建房、重启后的房间持久化与访问凭证。
 
 ## 明确边界
 
@@ -65,4 +87,4 @@ npm run test:browser
 原子量参考 CIAAW；KSCN 可核对 PubChem CID 516872：https://pubchem.ncbi.nlm.nih.gov/compound/516872。
 本轮化学修订参考：[硝基苯](https://pubchem.ncbi.nlm.nih.gov/compound/7416)、[硫化银](https://pubchem.ncbi.nlm.nih.gov/compound/Silver-sulfide)、[六羰基钨](https://webbook.nist.gov/cgi/cbook.cgi?ID=C14040110)、[三氟化氮](https://pubchem.ncbi.nlm.nih.gov/compound/Nitrogen-trifluoride)。
 
-本轮仅修改本地版本，未发布网站或修改访问权限。当前生产适配仍为 Worker/D1；未来 Zeabur 部署需配置 Node 服务入口及持久化数据库，不能直接将开发服务器作为生产配置。
+本轮仅修改本地版本，未发布网站或修改访问权限。Zeabur 部署由用户自行进行，使用上述生产入口。

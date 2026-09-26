@@ -20,7 +20,7 @@ try{
  await host.locator('#clear').click();await host.locator('#hint').click();assert(await host.locator('[data-match]').count()>0);assert.equal(await host.locator('#hint').getAttribute('aria-expanded'),'true');
  const snapshot=await host.evaluate(async()=>{const code=JSON.parse(localStorage.getItem('chemcards-last-room')),token=JSON.parse(localStorage.getItem('chemcards-room-keys'))[code];return(await fetch('/api/rooms/'+code,{headers:{authorization:'Bearer '+token}})).json();});
  const organic=snapshot.game.moves.find(m=>m.graph);assert(organic);
- await host.locator('#library-btn').click();await host.locator('#search').fill(organic.name);await host.locator(`[data-detail="${organic.id}"]`).click();await host.locator('#stage-detail').click();await host.locator('#play').click();
+ await host.locator('#collection-btn').click();await host.locator('#collection-search').fill(organic.name);await host.locator(`[data-discovery="${organic.id}"]`).click();await host.locator('#stage-detail').click();await host.locator('#play').click();
  await guest.locator('#hint:not([disabled])').waitFor();assert.equal(await host.locator('.molecule-canvas').count(),0,'quick mode does not open editor');
  await host.locator('#collection-btn').click();await host.locator('#show-unlocked').click();assert(await host.locator('.discovered').count()>=1);assert((await host.locator('#collection-list').textContent()).includes(organic.name));
  await host.locator('#pool-details').click();assert.equal(await host.locator('.pool-table tbody tr').count(),86);await host.locator('#close-modal').click();

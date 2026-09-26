@@ -8,7 +8,8 @@
     "start": "node scripts/serve.mjs",
     "db:generate": "drizzle-kit generate",
     "test": "node tests/engine.test.mjs && node tests/multiplayer.test.mjs && node tests/repair.test.mjs && node tests/hydrogen-layout.test.mjs",
-    "test:browser": "node tests/hand.test.mjs && node tests/browser.test.mjs && node tests/experience.test.mjs"
+    "test:browser": "node tests/hand.test.mjs && node tests/browser.test.mjs && node tests/experience.test.mjs && node tests/design.test.mjs",
+    "test:production": "node tests/production.test.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

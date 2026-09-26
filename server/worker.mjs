@@ -96,11 +96,14 @@ function timedMove(game) {
  return next;
 }
 
-let dbInitialized = false;
+const databaseInitializations = new WeakMap();
 async function ensureDb(db) {
- if (dbInitialized) return;
- await db.prepare('CREATE TABLE IF NOT EXISTS rooms (code TEXT PRIMARY KEY NOT NULL, state TEXT NOT NULL, revision INTEGER DEFAULT 0 NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)').run();
- dbInitialized = true;
+ if (!databaseInitializations.has(db)) {
+  const pending = db.prepare('CREATE TABLE IF NOT EXISTS rooms (code TEXT PRIMARY KEY NOT NULL, state TEXT NOT NULL, revision INTEGER DEFAULT 0 NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)').run();
+  databaseInitializations.set(db, pending);
+ }
+ try { await databaseInitializations.get(db); }
+ catch (error) { databaseInitializations.delete(db); throw error; }
 }
 
 async function handle(req, env) {

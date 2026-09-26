@@ -37,7 +37,9 @@ function closeModal(){modal.close();modalView='';}
 modal.addEventListener('close',()=>{modalView='';scheduleBot();});
 
 async function api(path,body){
- const response=await fetch(path,{method:body?'POST':'GET',headers:{...(body?{'Content-Type':'application/json'}:{}),...(session?{Authorization:'Bearer '+session.token}:{})},body:body?JSON.stringify(body):undefined});
+ let response;
+ try{response=await fetch(path,{method:body?'POST':'GET',headers:{...(body?{'Content-Type':'application/json'}:{}),...(session?{Authorization:'Bearer '+session.token}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(20000)});}
+ catch(error){throw Error(error.name==='TimeoutError'?'连接超时，请检查网络后重试':'无法连接服务器，请检查网络后重试');}
  let data;
  try{data=await response.json();}catch{throw Error('服务器暂时没有响应，请稍后重试');}
  if(!response.ok){const e=new Error(data.error||'操作失败');e.status=response.status;throw e;}
@@ -182,12 +184,17 @@ function renderEntrance(error=''){
  clearTimeout(botTimer);
  clearInterval(turnTimerId);
  const savedName=getStorage('chemcards-nickname')||'',code=new URLSearchParams(location.search).get('room')||'';
- root.innerHTML=`<section class="welcome"><div class="welcome-title"><div><span class="eyebrow">chemical cards</span><h1>化学扑克牌</h1><p>支持 2—6 人在线游玩，也可进行单人练习。</p></div><span class="edition">${Object.keys(ELEMENTS).length} 种元素 / ${SUBSTANCES.length} 种物质</span></div><div class="entrances"><section class="entrance"><h2>建房</h2><p>选择规则并创建房间。其他玩家可通过房间码或链接加入。</p><label class="field">你的昵称<input id="create-name" maxlength="16" placeholder="输入昵称" value="${esc(savedName)}" autocomplete="nickname"></label><div class="choices"><button class="choice ${entranceMode==='A'?'active':''}" data-mode="A"><strong>A · 质量竞技</strong><span>组牌比质量，先出完获胜</span></button><button class="choice ${entranceMode==='B'?'active':''}" data-mode="B"><strong>B · 化学接龙</strong><span>使用手牌补全桌面原子</span></button></div><div class="field-grid">${deckControl('create')}<label class="field">抽牌方式<select id="create-strategy"><option value="random">自由随机</option><option value="mixed">配方混合</option></select></label>${extraOptions({},false,'create')}</div><button class="btn primary wide" id="create-room">创建房间</button></section><section class="entrance"><h2>加入房间</h2><p>输入昵称和四位数字房间码。</p><label class="field">你的昵称<input id="join-name" maxlength="16" placeholder="输入昵称" value="${esc(savedName)}" autocomplete="nickname"></label><label class="field">房间码<input id="join-code" class="join-code" maxlength="4" placeholder="1001" inputmode="numeric" pattern="[0-9]*" value="${esc(code)}" autocomplete="off" spellcheck="false"></label><button class="btn wide" id="join-room">加入房间</button><p class="form-error" id="entrance-error" role="alert">${esc(error)}</p><p class="quiet-note">刷新或短暂断线后，用同一浏览器打开房间即可回到原来的座位。</p></section></div><div class="practice-line"><span>单人练习：与两名电脑玩家对局。</span><button class="quiet" id="practice">开始练习</button></div></section>`;
+ root.innerHTML=`<section class="welcome"><div class="welcome-title"><div><span class="eyebrow">chemical cards</span><h1>化学扑克牌</h1><p>支持 2—6 人在线游玩，也可进行单人练习。</p></div><span class="edition">${Object.keys(ELEMENTS).length} 种元素 / ${SUBSTANCES.length} 种物质</span></div><div class="entrances"><section class="entrance"><h2>建房</h2><p>选择规则并创建房间。其他玩家可通过房间码或链接加入。</p><label class="field">你的昵称<input id="create-name" maxlength="16" placeholder="输入昵称" value="${esc(savedName)}" autocomplete="nickname"></label><div class="choices"><button class="choice ${entranceMode==='A'?'active':''}" data-mode="A"><strong>A · 质量竞技</strong><span>组牌比质量，先出完获胜</span></button><button class="choice ${entranceMode==='B'?'active':''}" data-mode="B"><strong>B · 化学接龙</strong><span>使用手牌补全桌面原子</span></button></div><div class="field-grid">${deckControl('create')}<label class="field">抽牌方式<select id="create-strategy"><option value="random">自由随机</option><option value="mixed">配方混合</option></select></label>${extraOptions({},false,'create')}</div><button class="btn primary wide" id="create-room">创建房间</button><p class="form-error" id="create-error" role="alert"></p></section><section class="entrance"><h2>加入房间</h2><p>输入昵称和四位数字房间码。</p><label class="field">你的昵称<input id="join-name" maxlength="16" placeholder="输入昵称" value="${esc(savedName)}" autocomplete="nickname"></label><label class="field">房间码<input id="join-code" class="join-code" maxlength="4" placeholder="1001" inputmode="numeric" pattern="[0-9]*" value="${esc(code)}" autocomplete="off" spellcheck="false"></label><button class="btn wide" id="join-room">加入房间</button><p class="form-error" id="entrance-error" role="alert">${esc(error)}</p><p class="quiet-note">刷新或短暂断线后，用同一浏览器打开房间即可回到原来的座位。</p></section></div><div class="practice-line"><span>单人练习：与两名电脑玩家对局。</span><button class="quiet" id="practice">开始练习</button></div></section>`;
  bindDeck('create');
  $$('[data-mode]').forEach(b=>b.onclick=()=>{entranceMode=b.dataset.mode;$$('[data-mode]').forEach(x=>x.classList.toggle('active',x===b));});
  const enter=async creating=>{
   const button=$(creating?'#create-room':'#join-room');
+  if(button.disabled)return;
+  const originalLabel=button.textContent;
+  const errorBox=$(creating?'#create-error':'#entrance-error');
+  errorBox.textContent='';
   button.disabled=true;
+  button.textContent=creating?'正在创建…':'正在加入…';
   try{
    const name=$(creating?'#create-name':'#join-name').value.trim();
    if(!name)throw Error('请输入昵称');
@@ -213,10 +220,11 @@ function renderEntrance(error=''){
   }catch(e){
    if(e.status===401||e.status===404){const keys=getStorage('chemcards-room-keys')||{};delete keys[$('#join-code')?.value.trim()];setStorage('chemcards-room-keys',keys);}
    session=null;
-   if($('#entrance-error'))$('#entrance-error').textContent=e.message;
+   if(errorBox.isConnected){errorBox.textContent=e.message;errorBox.scrollIntoView({block:'nearest'});}
    else toast(e.message);
   }finally{
    button.disabled=false;
+   button.textContent=originalLabel;
   }
  };
  $('#create-room').onclick=()=>enter(true);
@@ -318,7 +326,7 @@ function renderComposer(){
  else if(!n)suggestions=[];
  else if(!exact.length)suggestions=room.game.moves.filter(m=>Object.entries(selection).every(([e,n])=>(countCards(m.cards)[e]||0)>=n)).slice(0,8);
 
- $('#composer').innerHTML=`<div class="composer-top"><div class="selection-text">${n?`已选 ${n} 张 · ${esc(compositionText(selection))}`:'点选抬牌，横划多选，拖向桌面出牌'}<small>${chosen?`${f(chosen.formula)} · ${esc(chosen.name)} · M ${massText(chosen.mass)}`:n?(!ownTurn()?'已预选，轮到你时判断能否出牌':'尚未组成当前可出的物质，可以继续选牌或清空'):ownTurn()?'上下翻牌、横划多选；电脑可用 Shift 连选':'上下滑动翻牌 · 横划多选 · 点选后上拖出牌'}</small></div><div class="composer-actions"><button class="quiet" id="clear" ${!n?'disabled':''}>清空</button><button class="btn" id="skip" ${!ownTurn()||room.game.mode==='A'&&!room.game.table?'disabled':''}>${room.game.mode==='A'?'过牌':'摸一张'}</button><button class="btn primary" id="play" ${!ownTurn()||!chosen?'disabled':''}>确认出牌</button></div></div>${suggestions.length?`<div class="match-list candidate-list" aria-label="可出组合">${suggestions.map(m=>`<button class="match ${chosen?.id===m.id?'active':''}" data-match="${m.id}"><strong>${f(m.formula)}</strong><span>${esc(m.name)}</span><small>${m.cards.length} 张 · ${massText(m.mass)}</small></button>`).join('')}</div>`:''}${n&&!suggestions.length?`<p class="quiet-note">没有找到？${localGame?'可以查阅物质库。':'可在物质库中提交新物质，由全体玩家确认后加入本房间。'}</p>`:''}`;
+ $('#composer').innerHTML=`<div class="composer-top"><div class="selection-text">${n?`已选 ${n} 张 · ${esc(compositionText(selection))}`:'点选抬牌，横划多选，拖向桌面出牌'}<small>${chosen?`${f(chosen.formula)} · ${esc(chosen.name)} · M ${massText(chosen.mass)}`:n?(!ownTurn()?'已预选，轮到你时判断能否出牌':'尚未组成当前可出的物质，可以继续选牌或清空'):ownTurn()?'上下翻牌、横划多选；电脑可用 Shift 连选':'上下滑动翻牌 · 横划多选 · 点选后上拖出牌'}</small></div><div class="composer-actions"><button class="quiet" id="clear" ${!n?'disabled':''}>清空</button><button class="btn" id="skip" ${!ownTurn()||room.game.mode==='A'&&!room.game.table?'disabled':''}>${room.game.mode==='A'?'过牌':'摸一张'}</button><button class="btn primary" id="play" ${!ownTurn()||!chosen?'disabled':''}>确认出牌</button></div></div>${suggestions.length?`<div class="match-list candidate-list" aria-label="可出组合">${suggestions.map(m=>`<button class="match ${chosen?.id===m.id?'active':''}" data-match="${m.id}"><strong>${f(m.formula)}</strong><span>${esc(m.name)}</span><small>${m.cards.length} 张 · ${massText(m.mass)}</small></button>`).join('')}</div>`:''}${n&&!suggestions.length?`<p class="quiet-note">没有找到？${localGame?'可以查阅图鉴。':'可在图鉴中提交新物质，由全体玩家确认后加入本房间。'}</p>`:''}`;
 
  $('#clear').onclick=()=>{selection={};activeMove=null;renderHand();renderComposer();};
  $('#skip').onclick=run(()=>action('skip'));
@@ -362,26 +370,18 @@ function openRoomOptions(){
  };
 }
 
-function openLibrary(initial=''){
- showModal('物质库',`<input class="search" id="search" placeholder="名称、规范化学式或原子组成，例如 KSCN" value="${esc(initial)}" aria-label="搜索物质"><p class="quiet-note" id="library-count"></p><div class="library-list" id="library-list"></div>${room&&!localGame?'<div class="modal-footer"><button class="btn" id="custom-list">房间提案</button><button class="btn primary" id="new-substance">提交未收录物质</button></div>':''}`);
- const update=()=>{
-  const q=$('#search').value.trim();
-  let key;try{key=keyOf(parseFormula(q));}catch{}
-  const list=allSubstances().filter(s=>!q||s.name.includes(q)||s.aliases?.some(a=>a.includes(q))||s.formula.toLowerCase().includes(q.toLowerCase())||s.key===key||s.category.includes(q));
-  $('#library-count').textContent=`收录 ${allSubstances().length} 种 · 找到 ${list.length} 种`;
-  $('#library-list').innerHTML=list.map(s=>`<button class="library-row" data-detail="${s.id}"><div><strong>${f(s.formula)}</strong><span>${esc(s.name)}</span></div><small>${esc(s.category)}<br>M ${massText(s.mass)}</small></button>`).join('')||'<p class="quiet-note">暂未收录。联机房间中可提交资料，由全体玩家确认后加入。</p>';
-  $$('[data-detail]').forEach(b=>b.onclick=()=>openDetail(b.dataset.detail));
- };
- $('#search').oninput=update;
- if($('#new-substance'))$('#new-substance').onclick=openProposal;
- if($('#custom-list'))$('#custom-list').onclick=openVotes;
- update();
-}
-
 function openDetail(id){
  const s=allSubstances().find(s=>s.id===id);
- showModal(s.name,`<div class="detail-formula">${f(s.formula)}</div><p class="muted">M ${massText(s.mass)} · ${s.size} 个原子 · ${esc(s.category)}</p><p style="margin:16px 0">${Object.entries(s.counts).map(([e,n])=>`<span class="tag">${e} × ${n}</span>`).join('')}</p>${s.graph?referenceSvg(s.graph)+`<p class="muted">${esc(s.graph.reference)}</p>`:'<p class="quiet-note">化学式采用物质的常用写法，不按原子序数或字母重新排列。</p>'}${s.source?`<p class="quiet-note">房间玩家共同确认 · <a href="${esc(s.source)}" target="_blank" rel="noopener noreferrer">查看提交资料</a></p>`:''}<div class="modal-footer"><button class="btn" id="back-library">返回物质库</button>${ownTurn()&&room.game.moves.some(m=>m.id===id)?'<button class="btn primary" id="stage-detail">选出这些牌</button>':''}</div>`);
- $('#back-library').onclick=()=>openLibrary();
+ const previousNodes=[...$('#modal-body').childNodes],previousScroll=modal.scrollTop,previousFocus=document.activeElement,previousView=modalView;
+ showModal(s.name,`<div class="detail-formula">${f(s.formula)}</div><p class="muted">M ${massText(s.mass)} · ${s.size} 个原子 · ${esc(s.category)}</p><p style="margin:16px 0">${Object.entries(s.counts).map(([e,n])=>`<span class="tag">${e} × ${n}</span>`).join('')}</p>${s.graph?referenceSvg(s.graph)+`<p class="muted">${esc(s.graph.reference)}</p>`:'<p class="quiet-note">化学式采用物质的常用写法，不按原子序数或字母重新排列。</p>'}${s.source?`<p class="quiet-note">房间玩家共同确认 · <a href="${esc(s.source)}" target="_blank" rel="noopener noreferrer">查看提交资料</a></p>`:''}<div class="modal-footer"><button class="btn" id="back-collection">返回图鉴</button>${ownTurn()&&room.game.moves.some(m=>m.id===id)?'<button class="btn primary" id="stage-detail">选出这些牌</button>':''}</div>`);
+ $('#back-collection').textContent='返回图鉴';
+ $('#back-collection').onclick=()=>{
+  $('#modal-body').replaceChildren(...previousNodes);
+  modalView=previousView;
+  previousFocus?.focus({preventScroll:true});
+  modal.scrollTop=previousScroll;
+ };
+ modal.scrollTop=0;
  if($('#stage-detail'))$('#stage-detail').onclick=()=>{closeModal();stage(room.game.moves.find(m=>m.id===id));};
 }
 
@@ -396,7 +396,7 @@ function openProposal(){
 }
 
 function openVotes(){
- showModal('房间物质提案',room.proposals.length?room.proposals.map(p=>`<article class="vote-card"><h3>${esc(p.name)} · ${f(p.formula)}</h3><p>${esc(compositionText(p.counts))} · M ${massText(p.mass)}</p><a href="${esc(p.source)}" target="_blank" rel="noopener noreferrer">核对参考资料 ↗</a><p>${p.status==='pending'?`${Object.values(p.votes).filter(Boolean).length}/${room.members.length} 人同意`:p.status==='accepted'?'已加入本房间':'未通过'}</p>${p.status==='pending'?`<div class="vote-buttons"><button class="btn primary small" data-vote="${p.id}" data-accept="true">同意收录</button><button class="btn small" data-vote="${p.id}" data-accept="false">不同意</button></div>`:''}</article>`).join(''):'<p class="muted">还没有提案。可在物质库中提交。</p>',false,'votes');
+ showModal('房间物质提案',room.proposals.length?room.proposals.map(p=>`<article class="vote-card"><h3>${esc(p.name)} · ${f(p.formula)}</h3><p>${esc(compositionText(p.counts))} · M ${massText(p.mass)}</p><a href="${esc(p.source)}" target="_blank" rel="noopener noreferrer">核对参考资料 ↗</a><p>${p.status==='pending'?`${Object.values(p.votes).filter(Boolean).length}/${room.members.length} 人同意`:p.status==='accepted'?'已加入本房间':'未通过'}</p>${p.status==='pending'?`<div class="vote-buttons"><button class="btn primary small" data-vote="${p.id}" data-accept="true">同意收录</button><button class="btn small" data-vote="${p.id}" data-accept="false">不同意</button></div>`:''}</article>`).join(''):'<p class="muted">还没有提案。可在图鉴中提交。</p>',false,'votes');
  $$('[data-vote]').forEach(b=>b.onclick=run(()=>action('vote',{proposalId:b.dataset.vote,accept:b.dataset.accept==='true'})));
 }
 
@@ -412,10 +412,10 @@ function recordDiscoveries(next){
 }
 function openCollection(){
  const saved=getStorage('chemcards-discoveries')||{};
- showModal('我的合成图鉴',`<p class="quiet-note">只记录你亲手打出的物质（含练习），保存在此浏览器。解套原子不计入。已点亮 ${Object.keys(saved).length} 种。</p><div class="collection-tools"><button class="btn small" id="show-unlocked">只看已点亮</button><button class="btn small" id="pool-details">查看真实牌池概率</button></div><label class="field">搜索物质<input id="collection-search" type="search" placeholder="名称或化学式"></label><div class="collection-grid" id="collection-list"></div>`);
+ showModal('物质图鉴',`<p class="quiet-note">可查询全部物质；亲手打出的物质会点亮（含练习），记录保存在此浏览器。解套原子不计入。已点亮 ${Object.keys(saved).length} 种。</p><div class="collection-tools"><button class="btn small" id="show-unlocked">只看已点亮</button><button class="btn small" id="pool-details">查看真实牌池概率</button></div><label class="field">搜索物质<input id="collection-search" type="search" placeholder="名称、化学式或原子组成，例如 KSCN"></label><div class="collection-grid" id="collection-list"></div>${room&&!localGame?'<div class="modal-footer"><button class="btn" id="custom-list">房间提案</button><button class="btn primary" id="new-substance">提交未收录物质</button></div>':''}`);
  let only=false;
- const draw=()=>{const q=$('#collection-search').value.trim().toLowerCase();const list=allSubstances().filter(s=>(!only||saved[s.name+'|'+s.formula])&&(!q||s.name.includes(q)||s.formula.toLowerCase().includes(q)||s.aliases?.some(a=>a.includes(q))));$('#collection-list').innerHTML=list.map(s=>{const entry=saved[s.name+'|'+s.formula];return '<button class="collection-tile '+(entry?'discovered':'undiscovered')+'" data-discovery="'+s.id+'"><div><strong>'+f(s.formula)+'</strong><span>'+esc(s.name)+'</span></div><small>'+(entry?'已合成 · '+entry.date.slice(0,10):'尚未合成')+'</small></button>';}).join('')||'<p class="quiet-note">暂无合成记录。</p>';$$('[data-discovery]').forEach(b=>b.onclick=()=>openDetail(b.dataset.discovery));};
- $('#show-unlocked').onclick=()=>{only=!only;$('#show-unlocked').textContent=only?'显示全部':'只看已点亮';draw();};$('#pool-details').onclick=openPool;$('#collection-search').oninput=draw;draw();
+ const draw=()=>{const q=$('#collection-search').value.trim().toLowerCase();let key;try{key=keyOf(parseFormula($('#collection-search').value.trim()));}catch{}const list=allSubstances().filter(s=>(!only||saved[s.name+'|'+s.formula])&&(!q||s.name.includes(q)||s.formula.toLowerCase().includes(q)||s.aliases?.some(a=>a.toLowerCase().includes(q))||s.key===key||s.category.includes(q)));$('#collection-list').innerHTML=list.map(s=>{const entry=saved[s.name+'|'+s.formula];return '<button class="collection-tile '+(entry?'discovered':'undiscovered')+'" data-discovery="'+s.id+'"><div><strong>'+f(s.formula)+'</strong><span>'+esc(s.name)+'</span></div><small>'+(entry?'已合成 · '+entry.date.slice(0,10):'尚未合成')+'</small></button>';}).join('')||'<p class="quiet-note">'+(q?'没有找到符合条件的物质。':only?'暂无合成记录。':'暂无物质。')+'</p>';$$('[data-discovery]').forEach(b=>b.onclick=()=>openDetail(b.dataset.discovery));};
+ $('#show-unlocked').onclick=()=>{only=!only;$('#show-unlocked').textContent=only?'显示全部':'只看已点亮';draw();};$('#pool-details').onclick=openPool;$('#collection-search').oninput=draw;if($('#new-substance'))$('#new-substance').onclick=openProposal;if($('#custom-list'))$('#custom-list').onclick=openVotes;draw();
 }
 function openPool(){showModal('1800 张牌池',`<p class="quiet-note">下表由实际牌池计算。自由随机为不放回抽样，表中是抽取第一张的概率；配方混合的分布不同。无稳定同位素的元素使用固定游戏质量值。</p><table class="pool-table"><thead><tr><th>元素</th><th>张数</th><th>概率</th></tr></thead><tbody>${Object.entries(ELEMENTS).map(([e,v])=>'<tr><td>'+e+' · '+v.name+'</td><td>'+poolCounts[e]+'</td><td>'+(poolCounts[e]/POOL.length*100).toFixed(3)+'%</td></tr>').join('')}</tbody></table>`);}
 function openFeedback(){
@@ -430,7 +430,7 @@ function openRules(){
  showModal('玩法与约定',`<div class="rule-block"><h3>A · 质量竞技</h3><p>牌全部分给玩家。出一个原子，或组成一种单质、无机物、有机物。跟牌的质量值必须严格更大；其余玩家都过牌后，最后出牌者自由领出。先出完获胜。</p><h3>B · 化学接龙</h3><p>每人起手最多 9 张（54 张、6 人时为 8 张）。你出的 P 与桌面全部原子 C 恰好组成一种物质。旧 C 弃掉，新 P 留给下家；也可以摸一张并结束回合。不限出牌张数。连续两圈无人出牌后更换 C。开启解套时，只有无任何合法组合才可单原子领出，旧 C 弃掉，该原子留给下家。关闭解套会保留严格规则，随机牌库可能产生无法消耗的牌。先出完获胜。</p><h3>物质与化学式</h3><p>内置 ${SUBSTANCES.length} 种物质，包括 KSCN、硫代硫酸盐、配合物及常见有机物。无机物保留常用化学式；未成物质的原子组使用“元素 × 数量”显示。新物质可经房间全体玩家确认加入，标记为房间约定。</p><h3>快速局与结构局</h3><p>快速局按配方出牌；结构局的内置有机物需要在自由画布连接所有原子，服务端校验结构。房间自定物质只按配方校验。结构局建议 90 秒以上或不限时。</p><h3>公平对局</h3><p>联网对局由服务器校验手牌、回合、质量与出牌合法性。其他人的手牌不会发到你的设备。房主调整规则后，所有人需要重新准备。可选不限时或 30／60／90／120 秒；服务器结算超时。A 领出超时会代出一张原子，其余情况过牌或摸牌。刷新不会重置时间。</p></div>`);
 }
 
-$('#library-btn').onclick=()=>openLibrary();
+
 $('#rules-btn').onclick=openRules;
 $('#feedback-btn').onclick=openFeedback;
 $('#collection-btn').onclick=openCollection;
