@@ -16,6 +16,8 @@ export class CardHand {
   host.addEventListener('contextmenu',e=>e.preventDefault());
  }
  update({cards,selection={},sort='element'}){
+  const signature=JSON.stringify([cards,sort]),unchanged=signature===this.signature;
+  const scroll=this.host.scrollTop;
   const oldRects=new Map([...this.host.querySelectorAll('[data-card]')].map(b=>[b.dataset.card,b.getBoundingClientRect()]));
   const occurrence={};this.cards=cards.map(e=>({e,id:e+'-'+(occurrence[e]=(occurrence[e]||0)+1)}));
   this.cards.sort((a,b)=>sort==='mass'?ELEMENTS[b.e].mass-ELEMENTS[a.e].mass:ELEMENTS[a.e].z-ELEMENTS[b.e].z);
@@ -26,10 +28,12 @@ export class CardHand {
    chosen.slice(desired).forEach(c=>this.selected.delete(c.id));
    let current=Math.min(chosen.length,desired);for(const c of these){if(current>=desired)break;if(!this.selected.has(c.id)){this.selected.add(c.id);current++;}}
   }
+  if(unchanged){this.paint();return;}
+  this.signature=signature;
   this.host.classList.add('physical-hand');
   this.host.innerHTML=this.cards.map((c,i)=>{const el=ELEMENTS[c.e];return `<button class="playing-card ${elementFinish(c.e)}" data-card="${c.id}" data-element="${c.e}" aria-pressed="false" style="--card:${el.bg};--ink:${el.ink};--deal-delay:${Math.min(i*12,330)}ms" title="${el.name} · ${el.color}"><span class="card-corner"><b>${c.e}</b><small>${el.z}</small></span><span class="card-center"><strong>${c.e}</strong><span>${el.name}</span><small>${massText(el.mass)}</small></span><span class="card-picked" aria-hidden="true">✓</span></button>`;}).join('');
   this.host.querySelectorAll('[data-card]').forEach(b=>{b.onclick=e=>{if(e.detail===0){this.toggle(b.dataset.card,e.shiftKey);}};});
-  this.layout();this.paint();
+  this.layout();this.host.scrollTop=scroll;this.paint();
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(this.first){playSound('deal');if(!reduced)this.host.classList.add('dealing');setTimeout(()=>this.host.classList.remove('dealing'),850);this.first=false;}
   else if(!reduced){for(const b of this.host.querySelectorAll('[data-card]')){const old=oldRects.get(b.dataset.card);if(!old)continue;const now=b.getBoundingClientRect();const dx=old.x-now.x,dy=old.y-now.y;if(Math.abs(dx)+Math.abs(dy)>3)b.animate([{translate:`${dx}px ${dy}px`},{translate:'0 0'}],{duration:260,easing:'cubic-bezier(.2,.7,.2,1)'});}}
@@ -40,7 +44,9 @@ export class CardHand {
   this.host.classList.toggle('compact-cards',small);
   const capacity=Math.max(2,Math.floor((width-cardWidth-16)/(small?30:38))+1);
   const rows=Math.max(1,Math.ceil(this.cards.length/capacity)),perRow=Math.ceil(this.cards.length/rows);
-  const rowStep=document.body.classList.contains('in-game')?Math.max(48,Math.min(cardHeight+8,(this.host.clientHeight-cardHeight-44)/Math.max(1,rows-1))):cardHeight+8;
+  const layoutKey=[width,innerWidth,innerHeight,this.cards.length].join(':');
+  const rowStep=this.layoutKey===layoutKey?this.rowStep:document.body.classList.contains('in-game')?Math.max(48,Math.min(cardHeight+8,(this.host.clientHeight-cardHeight-44)/Math.max(1,rows-1))):cardHeight+8;
+  this.layoutKey=layoutKey;this.rowStep=rowStep;
   const spacing=Math.min(small?50:66,(width-cardWidth-16)/Math.max(1,perRow-1));
   this.host.style.setProperty('--card-width',cardWidth+'px');this.host.style.setProperty('--card-height',cardHeight+'px');
   this.host.style.height=(rows===1?cardHeight+30:rows*rowStep+cardHeight-rowStep+30)+'px';
@@ -62,13 +68,14 @@ export class CardHand {
   this.notify();
  }
  pointerDown(e){const button=e.target.closest('[data-card]');if(!button||e.button>0||this.gesture)return;
-  this.gesture={id:button.dataset.card,x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,mode:'pending',original:new Set(this.selected),select:!this.selected.has(button.dataset.card),visited:new Set(),shift:e.shiftKey};
+  this.gesture={id:button.dataset.card,touch:e.pointerType==='touch',x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY,mode:'pending',original:new Set(this.selected),select:!this.selected.has(button.dataset.card),visited:new Set(),shift:e.shiftKey};
   this.host.setPointerCapture(e.pointerId);
  }
  pointerMove(e){const g=this.gesture;if(!g)return;const dx=e.clientX-g.x,dy=e.clientY-g.y;
   if(g.mode==='pending'&&Math.hypot(dx,dy)>8){
+   if(g.touch&&!g.original.has(g.id)&&Math.abs(dy)>Math.abs(dx)*1.15){g.mode='scroll';return;}
    if(dy<-12&&Math.abs(dy)>Math.abs(dx)*.65){g.mode='drag';if(!this.selected.has(g.id)){this.selected.clear();this.selected.add(g.id);this.notify();}this.makeGhost();this.host.classList.add('dragging');document.querySelector('.table')?.classList.add('drop-ready');}
-   else if(Math.abs(dx)>8){g.mode='sweep';this.sweep(g.id);this.host.classList.add('sweeping');}
+   else if(Math.abs(dx)>8&&(!g.touch||Math.abs(dx)>Math.abs(dy)*1.3)){g.mode='sweep';this.sweep(g.id);this.host.classList.add('sweeping');}
   }
   if(g.mode==='sweep'){
    const steps=Math.ceil(Math.hypot(e.clientX-g.lastX,e.clientY-g.lastY)/7);for(let i=1;i<=steps;i++){const x=g.lastX+(e.clientX-g.lastX)*i/steps,y=g.lastY+(e.clientY-g.lastY)*i/steps;const hit=document.elementFromPoint(x,y)?.closest('[data-card]');if(hit&&this.host.contains(hit))this.sweep(hit.dataset.card);}

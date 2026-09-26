@@ -136,3 +136,28 @@
  .in-game .hand-actions #play{margin-left:auto;flex:0 0 auto}
  .in-game .hand-actions .btn,.in-game .hand-actions .quiet{min-height:34px;font-size:11px;padding:5px 8px}
 }
+/* Stable actions and an anchored suggestion drawer; never resize the hand on selection. */
+.in-game .hand-bar{position:relative;box-shadow:none;border-color:#dce5e1}
+.in-game.my-turn .hand-bar{border-color:#75b39b;box-shadow:inset 3px 0 #078460}
+.in-game:not(.my-turn) #play:disabled{background:#eef2f0;color:#72847c;border-color:#dde6e1;box-shadow:none}
+.in-game #play{min-width:112px;font-variant-numeric:tabular-nums}
+.in-game .hand-selection{height:26px;min-height:26px}
+.in-game #composer-candidates{position:absolute;z-index:150;top:calc(100% + 5px);left:0;right:0;border-radius:10px;background:#fff;box-shadow:0 8px 24px #163c2926}
+.in-game #composer-candidates:empty{display:none}
+.in-game #composer-candidates>.quiet-note{display:none}
+.in-game #composer-candidates .candidate-list{margin:0;padding:10px;max-height:110px}
+.in-game .table:before{opacity:.45}
+.in-game .player:not(.turn){background:transparent;box-shadow:none}
+.in-game .player.turn{border-color:#078460;box-shadow:0 1px 4px #04785712}
+@media(pointer:coarse){.in-game .game-controls button{min-width:36px;min-height:40px}.in-game .hand-actions button{min-height:42px}}
+@media(max-width:800px){
+ .in-game .hand-selection{display:flex!important;height:24px;min-height:24px;justify-content:flex-start;font-size:11px}
+ .in-game .hand-selection .gesture-hint{display:inline;font-size:10px;color:#718379}
+ .in-game #play{min-width:104px}
+ .in-game .hand-actions #clear{min-width:40px}
+}
+@media(orientation:landscape) and (max-height:540px){
+ .in-game .hand-selection{display:none!important}
+ .in-game .hand-actions button{min-height:36px}
+ .in-game #composer-candidates .candidate-list{max-height:82px}
+}

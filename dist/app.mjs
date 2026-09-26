@@ -273,8 +273,10 @@ const ownTurn=()=>room?.game&&room.game.current===room.me&&room.game.winner===nu
 
 function renderGame(){
  document.body.classList.add('in-room','in-game');
- const g=room.game,scroll=$('#hand')?.scrollTop||0;
+ const g=room.game,previousHand=$('#hand'),scroll=previousHand?.scrollTop||0;
  root.innerHTML=`<div class="game-header"><div class="game-title"><span class="mode-chip">${g.mode}</span><div><h1>${title(g.mode)}</h1><span class="room-label">${localGame?'电脑练习':`房间 ${room.code}`} / ${g.mode==='A'?g.size+' 张':'起手 '+(g.initialHand??9)+' 张'}</span></div></div><div class="game-controls"><button class="quiet" id="game-collection">图鉴</button><button class="quiet" id="game-feedback">声音</button><button class="quiet" id="fullscreen">${document.fullscreenElement?'退出全屏':'全屏'}</button>${!localGame?'<button class="quiet" id="invite">邀请</button>':''}<button class="quiet" id="history">记录</button><button class="quiet" id="room-options">${localGame?'退出练习':'房间'}</button></div></div><div class="game-notices">${lastError?`<p class="error-banner">${esc(lastError)} · 正在自动重连，你的选牌会保留。</p>`:''}${proposalBanner()}</div><section class="table"><div class="drop-message">松手出牌</div><div class="players">${room.members.map(m=>`<div style="--seat-row:${Math.floor(m.index/2)+1};--seat-column:${m.index%2?3:1}" class="player ${m.index===g.current&&g.winner===null?'turn':''}"><span class="avatar ${m.index===room.me?'mine':''}">${esc(m.name.slice(0,1))}</span><div><div class="player-name">${esc(m.name)}${m.index===room.me?' · 你':''}</div><div class="player-cards">${g.handCounts[m.index]} 张${m.index===g.current&&g.winner===null?' · 出牌中':''}</div><div class="opponent-backs" aria-hidden="true">${m.index!==room.me?'<i></i>'.repeat(Math.min(5,g.handCounts[m.index])):''}</div></div></div>`).join('')}</div><div class="play-field">${g.mode==='B'?'<button class="draw-pile" id="draw-pile" aria-label="摸一张牌"><span>C</span><small>摸一张</small></button>':''}${tableContent(g)}</div><div class="table-bottom"><span>第 ${g.turn} 回合 · ${room.members.length} 人</span><span>${g.mode==='A'?'质量相同不能压牌':`摸牌堆 ${g.stockCount} · 连续摸牌 ${g.dryTurns}/${room.members.length*2}`}</span></div></section><section class="hand-bar" id="hand-bar"><div class="hand-bar-row"><div class="hand-status"><strong class="turn-status ${ownTurn()?'my-turn':''}">${g.winner!==null?`${esc(room.members[g.winner].name)}先出完了！`:ownTurn()?'轮到你出牌':`等待 ${esc(room.members[g.current].name)} 出牌`}</strong><span id="turn-countdown" class="turn-timer"></span><span class="hand-count">你的手牌 <b>${g.hand.length}</b> 张</span></div><div class="hand-selection" id="hand-selection"></div><div class="hand-actions" id="hand-actions"><button class="quiet" id="hint" ${room.options.hintsEnabled===false?'hidden':''} aria-expanded="${candidatesOpen}">成牌提示</button><button class="quiet" id="clear" disabled>清空</button><button class="btn" id="skip" ${!ownTurn()||(room.game.mode==='A'&&!room.game.table)?'disabled':''}>${room.game.mode==='A'?'过牌':'摸一张'}</button><button class="btn primary" id="play" disabled>确认出牌</button></div></div><div id="composer-candidates"></div></section><div class="hand physical-hand" id="hand"></div>`;
+ if(previousHand)$('#hand').replaceWith(previousHand);
+ document.body.classList.toggle('my-turn',ownTurn());
  renderHand();$('#hand').scrollTop=scroll;
  renderComposer();
  if($('#draw-pile')){$('#draw-pile').disabled=!ownTurn();$('#draw-pile').onclick=run(()=>action('skip'));}
@@ -340,7 +342,7 @@ function renderComposer(){
  else if(!n)suggestions=[];
  else if(!exact.length)suggestions=room.game.moves.filter(m=>Object.entries(selection).every(([e,n])=>(countCards(m.cards)[e]||0)>=n)).slice(0,8);
 
- if(room.options.hintsEnabled===false)suggestions=[];
+ if(room.options.hintsEnabled===false||!candidatesOpen)suggestions=[];
 
  const selEl=$('#hand-selection');
  if(selEl){
@@ -354,7 +356,7 @@ function renderComposer(){
  }
 
  const clearBtn=$('#clear');if(clearBtn)clearBtn.disabled=!n;
- const playBtn=$('#play');if(playBtn)playBtn.disabled=!ownTurn()||!chosen;
+ const playBtn=$('#play');if(playBtn){playBtn.disabled=!ownTurn()||!chosen;playBtn.textContent=chosen&&ownTurn()?`出牌 · ${n} 张`:'出牌';}
  const skipBtn=$('#skip');if(skipBtn){skipBtn.disabled=!ownTurn()||(room.game.mode==='A'&&!room.game.table);skipBtn.textContent=room.game.mode==='A'?'过牌':'摸一张';}
  const hintBtn=$('#hint');if(hintBtn){
   hintBtn.disabled=!ownTurn();
