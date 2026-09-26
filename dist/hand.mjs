@@ -36,13 +36,14 @@ export class CardHand {
  }
  layout(){
   if(this.gesture)return;
-  const width=this.host.clientWidth,small=width<650,cardWidth=small?75:94,cardHeight=small?112:136;
-  const capacity=Math.max(2,Math.floor((width-cardWidth-20)/(small?34:38))+1);
+  const width=this.host.clientWidth,small=width<650,cardWidth=small?68:94,cardHeight=small?100:136;
+  this.host.classList.toggle('compact-cards',small);
+  const capacity=Math.max(2,Math.floor((width-cardWidth-16)/(small?30:38))+1);
   const rows=Math.max(1,Math.ceil(this.cards.length/capacity)),perRow=Math.ceil(this.cards.length/rows);
-  const rowStep=document.body.classList.contains('in-game')?Math.max(56,Math.min(cardHeight+22,(this.host.clientHeight-cardHeight-38)/Math.max(1,rows-1))):cardHeight+22;
-  const spacing=Math.min(small?58:66,(width-cardWidth-20)/Math.max(1,perRow-1));
+  const rowStep=document.body.classList.contains('in-game')?Math.max(48,Math.min(cardHeight+8,(this.host.clientHeight-cardHeight-44)/Math.max(1,rows-1))):cardHeight+8;
+  const spacing=Math.min(small?50:66,(width-cardWidth-16)/Math.max(1,perRow-1));
   this.host.style.setProperty('--card-width',cardWidth+'px');this.host.style.setProperty('--card-height',cardHeight+'px');
-  this.host.style.height=(rows*(cardHeight+22)+32)+'px';
+  this.host.style.height=(rows===1?cardHeight+30:rows*rowStep+cardHeight-rowStep+30)+'px';
   const list=[...this.host.querySelectorAll('[data-card]')];
   list.forEach((b,i)=>{const row=Math.floor(i/perRow),j=i%perRow,count=Math.min(perRow,list.length-row*perRow),span=cardWidth+(count-1)*spacing,left=(width-span)/2;
    const normalized=count>1?(j-(count-1)/2)/((count-1)/2):0;
