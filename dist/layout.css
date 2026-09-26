@@ -268,7 +268,7 @@
  .in-game .player-cards{font-size:9px}
  .in-game .table .play-field{padding-top:8px}
  .in-game .table-bottom{font-size:9px}
- .in-game .hand-actions .btn{min-height:30px;padding:4px 10px;font-size:11px}
+ .in-game .hand-actions .btn{min-height:28px;padding:4px 8px;font-size:11px;white-space:nowrap}.in-game .hand-actions .quiet{padding:3px 5px;font-size:10px}
  .in-game .candidate-list{max-height:58px}
  .in-game .played{min-width:0;padding:6px 10px}
  .in-game .played-formula{font-size:22px}

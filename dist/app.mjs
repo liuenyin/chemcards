@@ -178,7 +178,7 @@ function deckControl(prefix,size=108,disabled=false,initialHand=9){return rangeC
 function deckSize(prefix){return +$('#'+prefix+'-size').value;}
 function cardOptions(prefix,mode){return mode==='A'?{size:deckSize(prefix)}:{initialHand:+$('#'+prefix+'-initial').value};}
 function bindDeck(prefix){for(const key of ['size','initial']){const slider=$('#'+prefix+'-'+key);slider.oninput=()=>{const text=slider.value+' 张';$('#'+prefix+'-'+key+'-label').textContent=text;slider.setAttribute('aria-valuetext',text);};}}
-function showModeOptions(prefix,mode){const scope=$('#'+prefix+'-size').closest(prefix==='create'?'.entrance':'.lobby-panel');scope.querySelectorAll('[data-mode-only]').forEach(e=>e.hidden=e.dataset.modeOnly!==mode);}
+function showModeOptions(prefix,mode){const scope=$('#'+prefix+'-size')?.closest(prefix==='create'?'.entrance':'.lobby-panel');scope?.querySelectorAll('[data-mode-only]').forEach(e=>e.hidden=e.dataset.modeOnly!==mode);}
 function optionFields(opts,disabled=false){
  return `<label class="field">玩法<select id="option-mode" ${disabled?'disabled':''}><option value="A" ${opts.mode==='A'?'selected':''}>A · 质量竞技</option><option value="B" ${opts.mode==='B'?'selected':''}>B · 化学接龙</option></select></label>${deckControl('option',opts.size,disabled,opts.initialHand)}<label class="field">抽牌方式<select id="option-strategy" ${disabled?'disabled':''}><option value="mixed" ${opts.strategy==='mixed'?'selected':''}>配方混合</option><option value="random" ${opts.strategy==='random'?'selected':''}>自由随机</option></select></label>${extraOptions(opts,disabled)}`;
 }
@@ -378,7 +378,7 @@ function renderComposer(){
   }else await action('play',{moveId:m.id,cards:m.cards});
  });
 
- $('[data-match]').forEach(b=>{
+ $$('[data-match]').forEach(b=>{
   const m=room.game.moves.find(m=>m.id===b.dataset.match);
   if(!m)return;
   b.onclick=()=>stage(m);
