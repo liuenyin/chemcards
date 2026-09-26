@@ -756,6 +756,8 @@
 .finish-metal{background-image:linear-gradient(115deg,#ffffff08 5%,#ffffff66 23%,#00000015 39%,#ffffff44 54%,#0000000d 72%,#ffffff38 90%),repeating-linear-gradient(0deg,#ffffff12 0px,#ffffff12 1px,transparent 1px,transparent 3px)}
 .finish-metal:after{content:'';position:absolute;inset:1px;border-radius:inherit;background:linear-gradient(110deg,transparent 28%,#ffffff00 36%,#ffffff60 48%,#ffffff00 60%,transparent 70%);background-size:280% 100%;background-position:100% 0;pointer-events:none;opacity:.55;transition:background-position .7s ease}
 .finish-metal:hover:after,.finish-metal.selected:after{background-position:0 0}
+.finish-metal.finish-gold:after{background:linear-gradient(110deg,transparent 28%,#fef08a00 36%,#fef08ab0 48%,#fef08a00 60%,transparent 70%);background-size:280% 100%;}
+.finish-metal.finish-copper:after{background:linear-gradient(110deg,transparent 28%,#fdba7400 36%,#fdba74b0 48%,#fdba7400 60%,transparent 70%);background-size:280% 100%;}
 .finish-graphite{background-image:repeating-linear-gradient(125deg,#ffffff06 0,#ffffff06 1px,transparent 1px,transparent 4px);box-shadow:0 3px 6px #0003,inset 0 0 20px #0002}
 .finish-gas{background-image:radial-gradient(ellipse at 80% 15%,#ffffffaa,transparent 70%)}
 .finish-crystal{background-image:linear-gradient(150deg,#ffffff22 20%,transparent 20%,transparent 64%,#ffffff18 64%)}
