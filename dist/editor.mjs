@@ -1,20 +1,40 @@
 import {explicitGraph,structureMatches,expand} from './chemistry.mjs';
-const colors={C:'#24363b',H:'#687b81',O:'#bb4841',N:'#3c64a4',S:'#ad8c22',Cl:'#608d35',Br:'#9e4e35',I:'#805b91'};
+const colors={C:'#0f172a',H:'#475569',O:'#dc2626',N:'#2563eb',S:'#854d0e',Cl:'#166534',Br:'#9a3412',I:'#6b21a8'};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Place only the remaining hydrogens; leave the player's scaffold where it is.
+export function placeHydrogens(nodes,bonds,plan,free,W,H){
+ const unplaced=new Set(free),tau=2*Math.PI;
+ for(let k=0;k<plan.length;k++){
+  const parent=plan[k],h=free[k],p=nodes[parent];
+  const neighbors=bonds.filter(([a,b])=>a===parent||b===parent).map(([a,b])=>nodes[a===parent?b:a]);
+  const angles=neighbors.map(n=>Math.atan2(n.y-p.y,n.x-p.x));
+  let best=null,bestScore=-Infinity;
+  for(const radius of [49,65,82,100])for(let step=0;step<48;step++){
+   const angle=step*tau/48,x=p.x+radius*Math.cos(angle),y=p.y+radius*Math.sin(angle);
+   if(x<23||x>W-23||y<23||y>H-32)continue;
+   const clearance=Math.min(80,...nodes.filter((_,i)=>i!==parent&&!unplaced.has(i)).map(n=>Math.hypot(x-n.x,y-n.y)-(n.e==='H'?32:36)));
+   const separation=angles.length?Math.min(...angles.map(a=>Math.acos(Math.cos(angle-a)))):Math.PI;
+   const score=Math.min(clearance,12)*12+separation*8-(radius-49)*.3;
+   if(score>bestScore){bestScore=score;best={x,y};}
+  }
+  if(best)Object.assign(nodes[h],best);
+  unplaced.delete(h);bonds.push([parent,h,1]);
+ }
+}
 export function referenceSvg(graph){
  const n=graph.nodes.length,cyclic=graph.bonds.filter(([a,b])=>a<6&&b<6).length===6&&n>=6;
  const p=graph.nodes.map((_,i)=>cyclic?(i<6?{x:210+66*Math.cos(i*Math.PI/3),y:110+66*Math.sin(i*Math.PI/3)}:{x:350+(i-6)*50,y:110}):{x:35+(i%8)*58,y:70+Math.floor(i/8)*90+(i%2?20:0)});
  return `<svg class="reference-svg" viewBox="0 0 500 240" role="img" aria-label="结构参考">${graph.bonds.map(([a,b,o])=>bondLines(p[a],p[b],o,'')).join('')}${graph.nodes.map((n,i)=>`<text x="${p[i].x}" y="${p[i].y}" text-anchor="middle" dominant-baseline="central">${esc(n.label)}</text>`).join('')}</svg>`;
 }
-function bondLines(A,B,order,cls='bond-line',radius=0){let dx=B.x-A.x,dy=B.y-A.y,l=Math.hypot(dx,dy)||1,nx=-dy/l,ny=dx/l;return Array.from({length:order},(_,i)=>{let d=(i-(order-1)/2)*6;return `<line class="${cls}" x1="${A.x+dx/l*radius+nx*d}" y1="${A.y+dy/l*radius+ny*d}" x2="${B.x-dx/l*radius+nx*d}" y2="${B.y-dy/l*radius+ny*d}"/>`;}).join('');}
+function bondLines(A,B,order,cls='bond-line',radiusA=0,radiusB=radiusA){let dx=B.x-A.x,dy=B.y-A.y,l=Math.hypot(dx,dy)||1,nx=-dy/l,ny=dx/l;return Array.from({length:order},(_,i)=>{let d=(i-(order-1)/2)*6;return `<line class="${cls}" x1="${A.x+dx/l*radiusA+nx*d}" y1="${A.y+dy/l*radiusA+ny*d}" x2="${B.x-dx/l*radiusB+nx*d}" y2="${B.y-dy/l*radiusB+ny*d}"/>`;}).join('');}
 export function mountEditor(container,move,onSubmit){
  container.innerHTML=`<p class="editor-meta">所有原子都在画布上。拖动可移动位置；轻点两个原子连键，点已有的键可修改。</p><div class="editor-toolbar"><button class="editor-tool active" data-order="1">— 单键</button><button class="editor-tool" data-order="2">＝ 双键</button><button class="editor-tool" data-order="3">≡ 三键</button><button class="editor-tool" data-order="0">擦除</button><span class="tool-divider"></span><button class="editor-tool" id="add-h">补齐氢</button><button class="editor-tool" id="undo">撤销</button><button class="editor-tool" id="redo">重做</button><button class="editor-tool" id="clear-bonds">清空键</button><button class="editor-tool" id="reference">参考</button></div><div class="canvas-wrap"><svg class="molecule-canvas" aria-label="自由分子画布" role="group"></svg><div class="canvas-hint">拖动原子 · 轻点两个原子连键 · Esc 取消选择</div></div><p class="editor-status" aria-live="polite">先连接骨架，再接上氢。</p><div id="editor-reference"></div><div class="editor-bottom"><span class="editor-meta" id="bond-count"></span><button class="btn primary" id="submit-structure">校验结构并出牌</button></div>`;
  const $=s=>container.querySelector(s),svg=$('svg'),wrap=$('.canvas-wrap');const W=Math.max(320,wrap.clientWidth),H=420,cols=Math.max(5,Math.floor((W-40)/55));
- let nodes=expand(move.counts).sort((a,b)=>(a==='H')-(b==='H')).map((e,i)=>({e,x:30+(i%cols)*55,y:35+Math.floor(i/cols)*57})),bonds=[],active=-1,order=1,undo=[],redo=[],drag=null,ref=false;
+ let nodes=explicitGraph(move.graph).nodes.map((n,i)=>({...n,x:30+(i%cols)*55,y:35+Math.floor(i/cols)*57})),bonds=[],active=-1,order=1,undo=[],redo=[],drag=null,ref=false;
  const state=()=>({nodes:structuredClone(nodes),bonds:structuredClone(bonds)});
  function save(){undo.push(state());if(undo.length>100)undo.shift();redo=[];}
  function status(s,error=false){$('.editor-status').textContent=s;$('.editor-status').classList.toggle('error',error);}
- function render(){svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.innerHTML=`<defs><pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".8" fill="#cbd6d8"/></pattern></defs><rect width="100%" height="100%" fill="url(#dots)"/>${bonds.map(([a,b,o],i)=>`${bondLines(nodes[a],nodes[b],o,'bond-line',19)}<line class="bond-hit" data-bond="${i}" x1="${nodes[a].x}" y1="${nodes[a].y}" x2="${nodes[b].x}" y2="${nodes[b].y}"/>`).join('')}${nodes.map((n,i)=>`<g class="node ${active===i?'active':''}" data-node="${i}" data-element="${n.e}" transform="translate(${n.x} ${n.y})" role="button" tabindex="0" aria-label="${n.e} 原子 ${i+1}"><circle r="${n.e==='H'?16:20}"/><text text-anchor="middle" dominant-baseline="central" fill="${colors[n.e]||'#435960'}">${n.e}</text></g>`).join('')}`;$('#bond-count').textContent=`${nodes.length} 个原子 · ${bonds.length} 条连接`;$('#undo').disabled=!undo.length;$('#redo').disabled=!redo.length;}
+ function render(){svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.innerHTML=`<defs><pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#cbd5e1"/></pattern></defs><rect width="100%" height="100%" fill="url(#dots)"/>${bonds.map(([a,b,o],i)=>`${bondLines(nodes[a],nodes[b],o,'bond-line',nodes[a].e==='H'?15:19,nodes[b].e==='H'?15:19)}<line class="bond-hit" data-bond="${i}" x1="${nodes[a].x}" y1="${nodes[a].y}" x2="${nodes[b].x}" y2="${nodes[b].y}"/>`).join('')}${nodes.map((n,i)=>`<g class="node ${active===i?'active':''}" data-node="${i}" data-element="${n.e}" transform="translate(${n.x} ${n.y})" role="button" tabindex="0" aria-label="${n.e} 原子 ${i+1}"><circle r="${n.e==='H'?16:20}" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/><text text-anchor="middle" dominant-baseline="central" fill="${colors[n.e]||'#334155'}">${n.e}${n.charge>0?'⁺':n.charge<0?'⁻':''}</text></g>`).join('')}`;$('#bond-count').textContent=`${nodes.length} 个原子 · ${bonds.length} 条连接`;$('#undo').disabled=!undo.length;$('#redo').disabled=!redo.length;}
  function connect(a,b){if(a===b){active=-1;render();return;}save();const at=bonds.findIndex(([x,y])=>x===a&&y===b||x===b&&y===a);if(order===0){if(at>=0)bonds.splice(at,1);}else if(at>=0)bonds[at][2]=order;else bonds.push([a,b,order]);active=-1;status('连接已更新，可以继续连键或拖动整理。');render();}
  function activate(i){if(active<0){active=i;status(`已选 ${nodes[i].e}，再点另一个原子连键。`);render();}else connect(active,i);}
  function point(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
@@ -24,8 +44,8 @@ export function mountEditor(container,move,onSubmit){
  svg.addEventListener('keydown',e=>{const node=e.target.closest('[data-node]');if(node&&(e.key==='Enter'||e.key===' ')){e.preventDefault();activate(+node.dataset.node);}if(e.key==='Escape'){active=-1;render();}});
  container.querySelectorAll('[data-order]').forEach(b=>b.onclick=()=>{order=+b.dataset.order;container.querySelectorAll('[data-order]').forEach(x=>x.classList.toggle('active',x===b));});
  $('#undo').onclick=()=>{if(!undo.length)return;redo.push(state());({nodes,bonds}=undo.pop());active=-1;render();};$('#redo').onclick=()=>{if(!redo.length)return;undo.push(state());({nodes,bonds}=redo.pop());active=-1;render();};$('#clear-bonds').onclick=()=>{save();bonds=[];active=-1;render();};
- $('#add-h').onclick=()=>{const valence={C:4,N:3,O:2,S:2,Cl:1,Br:1,I:1};const free=nodes.map((n,i)=>n.e==='H'&&!bonds.some(([a,b])=>a===i||b===i)?i:-1).filter(i=>i>=0);const plan=[];for(let i=0;i<nodes.length;i++){if(nodes[i].e==='H')continue;const used=bonds.reduce((s,[a,b,o])=>s+(a===i||b===i?o:0),0),missing=(valence[nodes[i].e]||0)-used;if(missing<0){status('骨架中有原子超出常见价态，请先改正。',true);return;}for(let n=0;n<missing;n++)plan.push(i);}if(plan.length!==free.length){status('剩余氢数与骨架缺少的键数不符，请先连接好骨架。',true);return;}save();plan.forEach((parent,k)=>{const h=free[k],angle=k*2.4;nodes[h].x=Math.max(23,Math.min(W-23,nodes[parent].x+49*Math.cos(angle)));nodes[h].y=Math.max(23,Math.min(H-32,nodes[parent].y+49*Math.sin(angle)));bonds.push([parent,h,1]);});render();status('已按骨架价态补氢。出牌前仍会检查完整结构。');};
+ $('#add-h').onclick=()=>{const valence={C:4,N:3,O:2,S:2,Cl:1,Br:1,I:1,F:1};const free=nodes.map((n,i)=>n.e==='H'&&!bonds.some(([a,b])=>a===i||b===i)?i:-1).filter(i=>i>=0);const plan=[];for(let i=0;i<nodes.length;i++){if(nodes[i].e==='H')continue;const used=bonds.reduce((s,[a,b,o])=>s+(a===i||b===i?o:0),0),missing=((nodes[i].e==='N'&&nodes[i].charge===1)?4:(nodes[i].e==='O'&&nodes[i].charge===-1)?1:(valence[nodes[i].e]||0))-used;if(missing<0){status('骨架中有原子超出常见价态，请先改正。',true);return;}for(let n=0;n<missing;n++)plan.push(i);}if(plan.length!==free.length){status('剩余氢数与骨架缺少的键数不符，请先连接好骨架。',true);return;}save();placeHydrogens(nodes,bonds,plan,free,W,H);render();status('已按骨架价态补氢。出牌前仍会检查完整结构。');};
  $('#reference').onclick=()=>{ref=!ref;$('#editor-reference').innerHTML=ref?`<div class="reference-box">${esc(move.graph.reference)}${referenceSvg(move.graph)}参考采用缩写基团；画布中仍需连接所有原子。</div>`:'';};
- $('#submit-structure').onclick=async()=>{const drawing={nodes:nodes.map(n=>({e:n.e})),bonds};if(!structureMatches(move.graph,drawing)){status('结构还不匹配。请检查是否漏连氢、键型是否正确，以及是否有多余连接。',true);return;}$('#submit-structure').disabled=true;status('结构正确，正在出牌…');try{await onSubmit(drawing);}catch(e){status(e.message,true);}finally{if($('#submit-structure'))$('#submit-structure').disabled=false;}};render();
- return{getDrawing:()=>({nodes:nodes.map(n=>({e:n.e})),bonds:structuredClone(bonds)})};
+ $('#submit-structure').onclick=async()=>{const drawing={nodes:nodes.map(n=>({e:n.e,charge:n.charge||0})),bonds};if(!structureMatches(move.graph,drawing)){status('结构还不匹配。请检查是否漏连氢、键型是否正确，以及是否有多余连接。',true);return;}$('#submit-structure').disabled=true;status('结构正确，正在出牌…');try{await onSubmit(drawing);}catch(e){status(e.message,true);}finally{if($('#submit-structure'))$('#submit-structure').disabled=false;}};render();
+ return{getDrawing:()=>({nodes:nodes.map(n=>({e:n.e,charge:n.charge||0})),bonds:structuredClone(bonds)})};
 }

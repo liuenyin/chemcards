@@ -5,7 +5,7 @@ import {POOL,newGame,generateDeck,seededRandom,legalMoves,selectedMoves,play,ski
 assert.equal(POOL.length,1800);
 assert.deepEqual(parseFormula('Ca3(PO4)2'),{Ca:3,P:2,O:8});
 assert.throws(()=>parseFormula('Na(OH'));
-assert.throws(()=>parseFormula('XeF2'));
+assert.throws(()=>parseFormula('Xx2'));
 assert.equal(massOf(parseFormula('CO')),28010);
 assert.equal(massOf(parseFormula('N2')),28014);
 assert.equal(massOf(parseFormula('C2H4')),28054);
@@ -20,7 +20,7 @@ const controlled={...b,context:['H'],hands:[['C','C','C','C','C','C','H','H','H'
 const benzene=legalMoves(controlled).find(m=>m.name==='苯');assert(benzene);assert.equal(benzene.cards.length,11);const benzenePlay=play(controlled,benzene.id,benzene.cards);assert.equal(benzenePlay.context.length,11);const chloro=legalMoves(benzenePlay).find(m=>m.name==='氯苯');assert.deepEqual(chloro.cards,['Cl']);
 for(let n=0;n<5;n++)b=skip(b);assert.equal(b.dryTurns,5);b=skip(b);assert.equal(b.dryTurns,0);assert.equal(b.context.length,1);assert(b.history.some(h=>h.type==='reset'));assert(auditGame(b));
 let depleted={...newGame({mode:'B',size:72,seed:17}),stock:[],discard:['Cl','O']};const before=depleted.hands[0].length;depleted=skip(depleted);assert.equal(depleted.hands[0].length,before+1);assert.equal(depleted.stock.length,1);
-const poolCounts=countCards(POOL);for(let seed=0;seed<40;seed++)for(const size of [72,108])for(const strategy of ['mixed','random']){const d=generateDeck(size,seededRandom(seed),strategy);assert.equal(d.cards.length,size);for(const[e,n]of Object.entries(countCards(d.cards)))assert(n<=poolCounts[e]);assert.deepEqual(d,generateDeck(size,seededRandom(seed),strategy));}
+const poolCounts=countCards(POOL);for(let seed=0;seed<40;seed++)for(const size of [54,72,108])for(const strategy of ['mixed','random']){const d=generateDeck(size,seededRandom(seed),strategy);assert.equal(d.cards.length,size);for(const[e,n]of Object.entries(countCards(d.cards)))assert(n<=poolCounts[e]);assert.deepEqual(d,generateDeck(size,seededRandom(seed),strategy));}
 const report=[];
 for(const mode of ['A','B']){
  let ended=0,maxTurns=0,totalTurns=0;const longGames=[];
@@ -35,8 +35,8 @@ for(const mode of ['A','B']){
   maxTurns=Math.max(maxTurns,g.turn);totalTurns+=g.turn;
  }
  report.push({mode,completed:ended,games:36,averageTurns:Math.round(totalTurns/36),maxTurns,longGames});
- // A is guaranteed to end with these always-playing bots. B has no rule-level
- // finite-turn guarantee, so long games are measured rather than hidden.
- if(mode==='A')assert.equal(ended,36);
+ // Default B rescue guarantees a legal nonempty play. Always-playing bots
+ // should finish; strict B can still run indefinitely and is a separate option.
+ assert.equal(ended,36,'default rescue games should finish for always-playing bots');
 }
 console.log(JSON.stringify({status:'passed',substances:SUBSTANCES.length,pool:POOL.length,simulations:report},null,2));

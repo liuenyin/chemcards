@@ -9,13 +9,13 @@ export function database(path=':memory:'){
  return {
   close:()=>sqlite.close(),
   prepare(sql) {
-   return {bind(...values) {
-    return {
-     async first(){return sqlite.prepare(sql).get(...values)||null;},
-     async run(){const r=sqlite.prepare(sql).run(...values);return {meta:{changes:Number(r.changes)}};},
-     async all(){return {results:sqlite.prepare(sql).all(...values)};},
-    };
-   }};
+   const wrap=(values=[])=>({
+    bind(...v){return wrap(v);},
+    async first(){return sqlite.prepare(sql).get(...values)||null;},
+    async run(){const r=sqlite.prepare(sql).run(...values);return {meta:{changes:Number(r.changes)}};},
+    async all(){return {results:sqlite.prepare(sql).all(...values)};},
+   });
+   return wrap();
   },
  };
 }
