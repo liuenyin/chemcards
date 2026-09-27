@@ -72,9 +72,9 @@ try {
   const disabled=table.childElementCount===0;
   s.setSoundSettings({effects:true});v.showSubstanceEffect({formula:'AgI'},table);
   await new Promise(r=>setTimeout(r,2500));
-  return{count,disabled,cleaned:table.childElementCount===0,metal:v.elementFinish('Cu'),tungsten:v.substanceTheme('W(CO)6')};
+  return{count,disabled,cleaned:table.childElementCount===0,metal:v.elementFinish('Cu'),tungsten:v.substanceTheme('W(CO)6'),fallback:v.substanceTheme('UnknownFormula123')};
  });
- assert.equal(effects.count,14);assert(effects.disabled&&effects.cleaned);assert(effects.metal.includes('finish-copper'));assert.equal(effects.tungsten,null);
+ assert.equal(effects.count,14);assert(effects.disabled&&effects.cleaned);assert(effects.metal.includes('finish-copper'));assert.equal(effects.tungsten?.label,'白色固体');assert.equal(effects.fallback,null);
  assert.deepEqual(errors,[]);
  console.log('Design passed: 54-card six-player relay, slider persistence, mode selection, square collection at 320/390/1100px, search, materials and effect settings.');
 } finally {await browser.close();}
