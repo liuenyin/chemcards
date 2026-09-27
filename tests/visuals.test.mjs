@@ -25,7 +25,7 @@ assert.equal(substanceTheme('FeO').label,'黑色固体');
 assert.equal(SUBSTANCES.length, 598);
 assert.equal(SUBSTANCES.filter(s=>substanceTheme(s.formula,s.name)).length, 598);
 
-// R1: Physical phases at 20-25 °C and 1 atm
+// R1: Physical phases at 25 °C and 1 atm
 const phaseChecks = [
   ['TiCl4', '四氯化钛', 'liquid'],
   ['Mn2O7', '七氧化二锰', 'liquid'],
@@ -37,7 +37,7 @@ const phaseChecks = [
   ['PCl3', '三氯化磷', 'liquid'],
   ['SCl2', '二氯化硫', 'liquid'],
   ['S2Cl2', '二氯化二硫', 'liquid'],
-  ['ICl', '氯化碘', 'liquid'],
+  ['ICl', '氯化碘', 'solid'],
   ['C2H5Br', '溴乙烷', 'liquid'],
   ['C3H7Br', '溴代正丙烷', 'liquid'],
   ['C3H7I', '碘代正丙烷', 'liquid'],
@@ -112,9 +112,9 @@ for(const f of ['Si','Ge','Sb','Te','GaAs','SiC','As']){
 }
 
 // Special material checks for newly supported textures
-for(const f of ['P4', 'P4O6']) assert.equal(substanceTheme(f).material, 'waxy', `${f} must be waxy`);
+for(const f of ['P4']) assert.equal(substanceTheme(f).material, 'waxy', `${f} must be waxy`);
 for(const f of ['TiCl4', 'SiCl4', 'SnCl4', 'PCl3']) assert.equal(substanceTheme(f).material, 'fuming', `${f} must be fuming`);
-for(const [f, n] of [['C3H8O3','丙三醇'], ['C2H6O2','乙二醇'], ['H2SO4','硫酸'], ['H3PO4','磷酸'], ['Mn2O7','七氧化二锰'], ['N2H4','联氨'], ['C6H7N','苯胺'], ['C6H5NO2','硝基苯']]) {
+for(const [f, n] of [['C3H8O3','丙三醇'], ['C2H6O2','乙二醇'], ['H2SO4','硫酸'],  ['Mn2O7','七氧化二锰'], ['N2H4','联氨'], ['C6H7N','苯胺'], ['C6H5NO2','硝基苯']]) {
   assert.equal(substanceTheme(f, n).material, 'viscous', `${n} (${f}) must be viscous`);
 }
 
@@ -202,7 +202,7 @@ for(const [f, n, l, m, hex] of oxideChecks){
 // --- Boundary Volatile Liquids and Gases ---
 const boundaryChecks = [
   ['CH2O', '甲醛', 'gas'],
-  ['C2H4O', '乙醛', 'liquid'],
+  ['C2H4O', '乙醛', 'gas'],
   ['C2H4O2', '乙酸', 'liquid'],
   ['CH2O2', '甲酸', 'liquid'],
   ['HCN', '氰化氢', 'liquid'],
@@ -220,7 +220,7 @@ const halogenChecks = [
   ['Cl2', '氯气', 'gas', '黄绿色气体', 'gas', '#a4b745'],
   ['Br2', '溴', 'liquid', '红棕色液体', 'liquid', '#95462e'],
   ['I2', '碘', 'solid', '灰黑色晶体', 'crystal', '#514f61'],
-  ['ICl', '氯化碘', 'liquid', '红棕色液体', 'liquid', '#8b2518'],
+  ['ICl', '氯化碘', 'solid', '暗红至黑色晶体（α 型）', 'crystal', '#592b31'],
   ['ICl3', '三氯化碘', 'solid', '橙黄色针状晶体', 'crystal', '#dfa820'],
   ['ClO2', '二氧化氯', 'gas', '黄绿色气体', 'gas', '#a4b745']
 ];
@@ -241,7 +241,7 @@ const nitrogenOxideChecks = [
   ['NO', '一氧化氮', 'gas', '无色气体', 'gas', '#c1cbd0'],
   ['NO2', '二氧化氮', 'gas', '红棕色气体', 'gas', '#9b5233'],
   ['N2O', '一氧化二氮', 'gas', '无色气体', 'gas', '#c1cbd0'],
-  ['N2O4', '四氧化二氮', 'liquid', '黄褐色易挥发液体', 'liquid', '#b58c65'],
+  ['N2O4', '四氧化二氮', 'gas', '含 NO₂ 的平衡气体', 'gas', '#b58c65'],
   ['N2O5', '五氧化二氮', 'solid', '白色晶体', 'crystal', '#c5cbd0']
 ];
 for(const [f, n, p, l, m, hex] of nitrogenOxideChecks){
@@ -358,3 +358,15 @@ for(const row of docTableRows){
 }
 
 
+
+// Reference-based regressions (sources are attached to APPEARANCE_CONDITIONS).
+assert.equal(substanceTheme('H3PO4').phase,'solid');
+assert.equal(substanceTheme('H3PO4').material,'crystal');
+assert.equal(substanceTheme('P4O6').phase,'liquid');
+assert.equal(substanceTheme('P4O6').material,'liquid');
+assert.equal(substanceTheme('H2SO3').basis,'solution');
+assert.equal(substanceTheme('H2SO3').label,'水溶液示意');
+assert.equal(substanceTheme('N2O4').basis,'equilibrium');
+assert(substanceTheme('ICl').note.includes('α'));
+for(const f of ['HClO','HClO2','HClO3','HBrO','HBrO3','HNO2','HBF4','NH3·H2O'])assert.equal(substanceTheme(f).basis,'solution');
+for(const s of SUBSTANCES){const t=substanceTheme(s.formula,s.name);assert.equal(t.temperatureC,25);assert.equal(t.pressureAtm,1);}

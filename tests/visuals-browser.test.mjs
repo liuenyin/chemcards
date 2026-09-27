@@ -22,6 +22,24 @@ try{
   assert.equal(await page.locator('body').getAttribute('data-substance-material'),material);
   assert.equal(await page.locator('.ambient-matter i').first().evaluate(e=>getComputedStyle(e).animationName),'none');
  }
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ for(const formula of ['P4','Si']){
+  await page.evaluate(async formula=>(await import('/visuals.mjs')).applySubstanceTheme({formula}),formula);
+  assert.equal(await page.locator('.ambient-matter i').first().evaluate(e=>getComputedStyle(e).animationName),'none');
+ }
+ await page.evaluate(async()=>{const v=await import('/visuals.mjs');v.applySubstanceTheme({formula:'TiCl4'});});
+ assert.equal(await page.locator('.ambient-matter i').nth(0).evaluate(e=>getComputedStyle(e).animationName),'fuming-vapor');
+ assert.equal(await page.locator('.ambient-matter i').nth(1).evaluate(e=>getComputedStyle(e).animationName),'ambient-ripple');
+ assert.equal(await page.locator('.ambient-matter i').evaluateAll(items=>items.filter(e=>getComputedStyle(e).display!=='none').length),6);
+ await page.evaluate(async()=>(await import('/visuals.mjs')).applySubstanceTheme(null));
+ // Verify users can see the conditions, not just the internal metadata.
+ for(const [name,expected]of [['磷酸','纯磷酸晶体'],['亚硫酸','二氧化硫水溶液'],['六氧化四磷','低温时为蜡状固体']]){
+  await page.locator('#collection-btn').click();await page.locator('#collection-search').fill(name);
+  const id=await page.evaluate(async name=>(await import('/chemistry.mjs')).SUBSTANCES.find(s=>s.name===name).id,name);
+  await page.locator(`[data-discovery="${id}"]`).click();
+  assert((await page.locator('#modal-body').textContent()).includes(expected));
+  await page.locator('#close-modal').click();
+ }
  assert.deepEqual(errors,[]);
  console.log('Browser themes passed: all 598 entries, organic phase/caption transitions, single non-interactive layer, off switch and unknown fallback.');
 }finally{await browser.close();}

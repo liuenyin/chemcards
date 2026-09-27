@@ -3,7 +3,7 @@ import {newGame,legalMoves,play,skip,chooseBotMove,POOL,RELAY_POOL} from './engi
 import {mountEditor,referenceSvg} from './editor.mjs';
 import {CardHand,flyCards} from './hand.mjs';
 import {playSound,getSoundSettings,setSoundSettings} from './sound.mjs';
-import {showSubstanceEffect,applySubstanceTheme} from './visuals.mjs';
+import {showSubstanceEffect,applySubstanceTheme,substanceTheme} from './visuals.mjs';
 
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],root=$('#root'),modal=$('#modal');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -426,10 +426,15 @@ function openRoomOptions(){
  };
 }
 
+function appearanceDescription(s){
+ const t=substanceTheme(s.formula,s.name);
+ if(!t)return '';
+ return `<p class="quiet-note">外观：${esc(t.label)} · 25°C / 1 atm${t.basis==='solution'?' · 水溶液示意':''}${t.note?`<br>${esc(t.note)}`:''}</p>`;
+}
 function openDetail(id){
  const s=allSubstances().find(s=>s.id===id);
  const previousNodes=[...$('#modal-body').childNodes],previousScroll=modal.scrollTop,previousFocus=document.activeElement,previousView=modalView;
- showModal(s.name,`<div class="detail-formula">${f(s.formula)}</div><p class="muted">M ${massText(s.mass)} · ${s.size} 个原子 · ${esc(s.category)}</p><p style="margin:16px 0">${Object.entries(s.counts).map(([e,n])=>`<span class="tag">${e} × ${n}</span>`).join('')}</p>${s.graph?referenceSvg(s.graph)+`<p class="muted">${esc(s.graph.reference)}</p>`:''}${s.source?`<p class="quiet-note">房间玩家共同确认 · <a href="${esc(s.source)}" target="_blank" rel="noopener noreferrer">查看提交资料</a></p>`:''}<div class="modal-footer"><button class="btn" id="back-collection">返回图鉴</button>${room?.options.hintsEnabled!==false&&ownTurn()&&room.game.moves.some(m=>m.id===id)?'<button class="btn primary" id="stage-detail">选出这些牌</button>':''}</div>`);
+ showModal(s.name,`<div class="detail-formula">${f(s.formula)}</div>${appearanceDescription(s)}<p class="muted">M ${massText(s.mass)} · ${s.size} 个原子 · ${esc(s.category)}</p><p style="margin:16px 0">${Object.entries(s.counts).map(([e,n])=>`<span class="tag">${e} × ${n}</span>`).join('')}</p>${s.graph?referenceSvg(s.graph)+`<p class="muted">${esc(s.graph.reference)}</p>`:''}${s.source?`<p class="quiet-note">房间玩家共同确认 · <a href="${esc(s.source)}" target="_blank" rel="noopener noreferrer">查看提交资料</a></p>`:''}<div class="modal-footer"><button class="btn" id="back-collection">返回图鉴</button>${room?.options.hintsEnabled!==false&&ownTurn()&&room.game.moves.some(m=>m.id===id)?'<button class="btn primary" id="stage-detail">选出这些牌</button>':''}</div>`);
  $('#back-collection').textContent='返回图鉴';
  $('#back-collection').onclick=()=>{
   $('#modal-body').replaceChildren(...previousNodes);

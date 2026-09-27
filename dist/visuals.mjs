@@ -8,7 +8,7 @@ export function elementFinish(e){
  return 'finish-crystal';
 }
 
-// Pure substances at approximately 20–25 °C, ambient pressure.
+// Reference appearance at 25 °C, 1 atm; solution/equilibrium exceptions are explicit.
 // Sources and deliberate omissions: docs/substance-visuals.md.
 export const FORMULA_THEMES={
   H2:["#c1cbd0","gas","无色气体","gas"],
@@ -106,7 +106,7 @@ export const FORMULA_THEMES={
   SCl2:["#9b3323","liquid","红棕色液体","liquid"],
   S2Cl2:["#c59220","liquid","金黄色油状液体","viscous"],
   ICl3:["#dfa820","solid","橙黄色针状晶体","crystal"],
-  ICl:["#8b2518","liquid","红棕色液体","liquid"],
+  ICl:["#592b31", "solid", "暗红至黑色晶体（α 型）", "crystal"],
   XeO3:["#cbd1d8","solid","无色晶体","crystal"],
   XeF2:["#cbd1d8","solid","无色晶体","crystal"],
   XeF4:["#cbd1d8","solid","无色晶体","crystal"],
@@ -117,13 +117,13 @@ export const FORMULA_THEMES={
   NO:["#c1cbd0","gas","无色气体","gas"],
   NO2:["#9b5233","gas","红棕色气体","gas"],
   N2O:["#c1cbd0","gas","无色气体","gas"],
-  N2O4:["#b58c65","liquid","黄褐色易挥发液体","liquid"],
+  N2O4:["#b58c65", "gas", "含 NO₂ 的平衡气体", "gas"],
   N2O5:["#c5cbd0","solid","白色晶体","crystal"],
   SO2:["#c1cbd0","gas","无色气体","gas"],
   SO3:["#b2c8d0","liquid","无色易挥发液体","liquid"],
   SeO2:["#c5cbd0","solid","白色针状晶体","crystal"],
   SiO2:["#d0d5da","solid","无色透明晶体","crystal"],
-  P4O6:["#d1cdb0","solid","白色蜡状固体","waxy"],
+  P4O6:["#b2c8d0", "liquid", "无色液体", "liquid"],
   P4O10:["#c5cbd0","solid","白色粉末","powder"],
   Na2O:["#c5cbd0","solid","白色固体","powder"],
   Na2O2:["#dcd488","solid","淡黄色固体","powder"],
@@ -166,25 +166,25 @@ export const FORMULA_THEMES={
   CeO2:["#dcd3a8","solid","淡黄色粉末","powder"],
   HgO:["#c95030","solid","红色固体","powder"],
   Ag2O:["#5a4a3a","solid","棕黑色固体","powder"],
-  HClO:["#d0e0b0","liquid","浅黄绿色液体","liquid"],
-  HClO2:["#d0e0b0","liquid","浅黄色液体","liquid"],
-  HClO3:["#b2c8d0","liquid","无色液体","liquid"],
+  HClO:["#b2c8d0", "liquid", "水溶液示意", "liquid"],
+  HClO2:["#b2c8d0", "liquid", "水溶液示意", "liquid"],
+  HClO3:["#b2c8d0", "liquid", "水溶液示意", "liquid"],
   HClO4:["#b2c8d0","liquid","无色液体","liquid"],
-  HBrO:["#d8cc90","liquid","草黄色液体","liquid"],
-  HBrO3:["#b2c8d0","liquid","无色液体","liquid"],
+  HBrO:["#b2c8d0", "liquid", "水溶液示意", "liquid"],
+  HBrO3:["#b2c8d0", "liquid", "水溶液示意", "liquid"],
   HIO3:["#cbd1d8","solid","无色晶体","crystal"],
   HIO4:["#cbd1d8","solid","无色晶体","crystal"],
-  HNO2:["#a0c8e0","liquid","浅蓝色液体","liquid"],
+  HNO2:["#b2c8d0", "liquid", "水溶液示意", "liquid"],
   HNO3:["#b2c8d0","liquid","无色液体","liquid"],
-  H2SO3:["#b2c8d0","liquid","无色液体","liquid"],
+  H2SO3:["#b2c8d0", "liquid", "水溶液示意", "liquid"],
   H2SO4:["#b2c8d0","liquid","无色黏稠液体","viscous"],
   H2S2O7:["#b2c8d0","liquid","无色黏稠发烟液体","viscous"],
   H3PO3:["#cbd1d8","solid","无色至白色晶体","crystal"],
   H3PO2:["#cbd1d8","solid","无色晶体","crystal"],
-  H3PO4:["#b2c8d0","liquid","无色黏稠液体","viscous"],
+  H3PO4:["#cbd1d8", "solid", "无色晶体", "crystal"],
   H4P2O7:["#cbd1d8","solid","无色针状晶体","crystal"],
   H3BO3:["#cbd1d8","solid","白色晶体","crystal"],
-  HBF4:["#b2c8d0","liquid","无色液体","liquid"],
+  HBF4:["#b2c8d0", "liquid", "水溶液示意", "liquid"],
   H2SiO3:["#c5cbd0","solid","白色固体","powder"],
   H4SiO4:["#c5cbd0","solid","白色固体","powder"],
   LiOH:["#c5cbd0","solid","白色固体","powder"],
@@ -207,7 +207,7 @@ export const FORMULA_THEMES={
   "Pb(OH)2":["#c5cbd0","solid","白色固体","powder"],
   "Bi(OH)3":["#c5cbd0","solid","白色固体","powder"],
   TlOH:["#d8c83a","solid","黄色针状晶体","crystal"],
-  "NH3·H2O":["#b2c8d0","liquid","无色液体","liquid"],
+  "NH3·H2O":["#b2c8d0", "liquid", "水溶液示意", "liquid"],
   LiCl:["#c5cbd0","solid","白色晶体","crystal"],
   NaCl:["#c5cbd0","solid","白色晶体","crystal"],
   KCl:["#c5cbd0","solid","白色晶体","crystal"],
@@ -461,7 +461,7 @@ export const FORMULA_THEMES={
   C2H6:["#c1cbd0","gas","无色气体","gas"],
   C2H4:["#c1cbd0","gas","无色气体","gas"],
   C2H2:["#c1cbd0","gas","无色气体","gas"],
-  C2H4O:["#b2c8d0","liquid","无色液体","liquid"],
+  C2H4O:["#c1cbd0", "gas", "无色气体", "gas"],
   C3H8:["#c1cbd0","gas","无色气体","gas"],
   C3H4:["#c1cbd0","gas","无色气体","gas"],
   C4H6:["#c1cbd0","gas","无色气体","gas"],
@@ -634,6 +634,16 @@ export const NAMED_THEMES={
   "乙酸丁酯":["C6H12O2","#b2c8d0","liquid","无色液体","liquid"],
   "萘":["C10H8","#c5cbd0","solid","白色晶体","crystal"]
 };
+// Conditions are part of the meaning of an appearance, not extra game rules.
+export const APPEARANCE_CONDITIONS={
+ H3PO4:{basis:'pure',note:'25°C、1 atm 下按纯磷酸晶体显示；常见磷酸溶液另有状态。',source:'https://www.cdc.gov/niosh/npg/npgd0506.html'},
+ ICl:{basis:'pure',note:'采用 α 型；熔点约 27°C。β 型的熔点和状态不同。',source:'https://cameochemicals.noaa.gov/report?key=CH930'},
+ N2O4:{basis:'equilibrium',note:'25°C、1 atm 下与 NO₂ 形成气相平衡；棕色来自 NO₂，不表示纯 N₂O₄ 有棕色。',source:'https://www.cdc.gov/niosh/npg/npgd0454.html'},
+ P4O6:{basis:'pure',note:'熔点约 24°C；25°C 显示液体，低温时为蜡状固体。',source:'https://cameochemicals.noaa.gov/chemical/4251'},
+ C2H4O:{basis:'pure',note:'乙醛沸点约 20.6°C；25°C、1 atm 下显示气体。',source:'https://www.cdc.gov/niosh/npg/npgd0001.html'},
+ H2SO3:{basis:'solution',note:'展示二氧化硫水溶液，不表示可分离的纯亚硫酸液体。',source:'https://cameochemicals.noaa.gov/report?key=CH1558'}
+};
+const solutionFormulae=new Set(['H2SO3','HClO','HClO2','HClO3','HBrO','HBrO3','HNO2','HBF4','NH3·H2O']);
 export function substanceTheme(formula,name){
  const named=NAMED_THEMES[name];
  const entry=(named&&named[0]===formula)?named.slice(1):FORMULA_THEMES[formula];
@@ -643,7 +653,7 @@ export function substanceTheme(formula,name){
   formula==='Hg'?'mercury':
   formula==='C'?'graphite':
   ['Si','Ge','Sb','Te','GaAs','SiC','As'].includes(formula)||label.includes('半金属')||label.includes('半导体')?'semiconductor':
-  ['P4','P4O6'].includes(formula)||label.includes('蜡状')?'waxy':
+  formula==='P4'||label.includes('蜡状')?'waxy':
   ['TiCl4','SiCl4','SnCl4','PCl3'].includes(formula)||label.includes('发烟液体')?'fuming':
   phase==='gas'?'gas':
   phase==='liquid'?(
@@ -660,7 +670,8 @@ export function substanceTheme(formula,name){
   material==='semiconductor'?'#a5b8c7':
   material==='waxy'?'#f5f0d8':
   '#ffffff';
- return {color,phase,label,material,highlight,kind:material};
+ const conditions=APPEARANCE_CONDITIONS[formula]||(solutionFormulae.has(formula)?{basis:'solution',note:'按水溶液作中性示意；颜色取决于浓度，不代表纯物质的相态。'}:{basis:'reference',note:''});
+ return {color,phase,label,material,highlight,kind:material,temperatureC:25,pressureAtm:1,...conditions};
 }
 export function applySubstanceTheme(move){
  const theme=move&&!move.id?.startsWith('rescue-')&&!move.id?.startsWith('atom-')&&!move.id?.startsWith('custom-')&&getSoundSettings().effects!==false?substanceTheme(move.formula,move.name):null;
@@ -677,6 +688,6 @@ export function showSubstanceEffect(move,table){
  table.querySelector('.substance-effect')?.remove();
  const node=document.createElement('div');node.className='substance-effect '+theme.kind;node.setAttribute('aria-hidden','true');node.style.setProperty('--effect-color',theme.color);
  const caption=document.createElement('span');caption.className='effect-caption';caption.textContent=theme.label;node.append(caption);
- if(['crystal','powder','semiconductor','waxy'].includes(theme.kind))for(let i=0;i<14;i++){const p=document.createElement('i');p.style.cssText=`--i:${i};left:${12+(i*31)%76}%;top:${22+(i*17)%43}%`;node.append(p);}
+ if(['crystal','powder','semiconductor'].includes(theme.kind))for(let i=0;i<14;i++){const p=document.createElement('i');p.style.cssText=`--i:${i};left:${12+(i*31)%76}%;top:${22+(i*17)%43}%`;node.append(p);}
  table.append(node);setTimeout(()=>node.remove(),2400);
 }

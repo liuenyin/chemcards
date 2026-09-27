@@ -201,8 +201,10 @@ body.in-game[data-substance-phase]{background:color-mix(in srgb,var(--substance-
 [data-substance-material=viscous] .ambient-matter i{width:18vw;height:35vh;border-radius:42% 58% 55% 45%;border:1px solid currentColor;background:linear-gradient(110deg,transparent,var(--substance-highlight),transparent);animation:slow-flow 24s ease-in-out infinite alternate}
 [data-substance-material=mercury] .ambient-matter i{width:8vw;height:8vw;border:0;border-radius:50%;background:radial-gradient(circle at 32% 25%,white 4%,var(--substance-highlight) 16%,currentColor 40%,#495969 70%,transparent 72%);opacity:.15;animation:slow-flow 20s ease-in-out infinite alternate}
 [data-substance-material=semiconductor] .ambient-matter i{clip-path:polygon(30% 0,70% 0,100% 40%,85% 100%,15% 100%,0 40%);background:linear-gradient(135deg,var(--substance-highlight),currentColor 45%,transparent);opacity:.13;animation:facet-light 12s ease-in-out infinite alternate}
-[data-substance-material=waxy] .ambient-matter i{width:14vw;height:14vw;border-radius:48% 52% 56% 44%;border:1px solid currentColor;background:radial-gradient(ellipse at 40% 40%,var(--substance-highlight),currentColor 60%,transparent);opacity:.12;animation:slow-flow 26s ease-in-out infinite alternate}
-[data-substance-material=fuming] .ambient-matter i{width:26vw;height:26vw;border-radius:50%;background:radial-gradient(currentColor,transparent 70%);filter:blur(18px);opacity:.14;animation:fuming-vapor 14s ease-in-out infinite alternate}
+[data-substance-material=waxy] .ambient-matter i{width:14vw;height:14vw;border-radius:48% 52% 56% 44%;border:1px solid currentColor;background:radial-gradient(ellipse at 40% 40%,var(--substance-highlight),currentColor 60%,transparent);opacity:.12;animation:none;transform:rotate(12deg)}
+/* Even elements mark the liquid surface, odd elements suggest mist above it. */
+[data-substance-material=fuming] .ambient-matter i{width:20vw;height:8vw;border:1px solid currentColor;border-radius:50%;background:transparent;filter:none;opacity:.09;animation:ambient-ripple 18s ease-in-out infinite alternate}
+[data-substance-material=fuming] .ambient-matter i:nth-child(odd){width:18vw;height:18vw;border:0;background:radial-gradient(currentColor,transparent 68%);filter:blur(12px);opacity:.1;animation:fuming-vapor 16s ease-in-out infinite alternate}
 .in-game[data-substance-material=metal] .played,.in-game[data-substance-material=mercury] .played{background:linear-gradient(120deg,#ffffff 15%,color-mix(in srgb,var(--substance-color) 14%,white) 42%,var(--substance-highlight) 49%,#fff 60%)}
 .in-game[data-substance-material=semiconductor] .played{background:linear-gradient(130deg,#ffffff 18%,color-mix(in srgb,var(--substance-color) 12%,white) 44%,var(--substance-highlight) 52%,#ffffff 62%)}
 .in-game[data-substance-material=waxy] .played{background:radial-gradient(ellipse at 50% 50%,color-mix(in srgb,var(--substance-color) 10%,white) 30%,#ffffff 80%)}
@@ -219,3 +221,7 @@ body.in-game[data-substance-phase]{background:color-mix(in srgb,var(--substance-
 @keyframes fuming-vapor{0%{transform:translateY(0) scale(1);opacity:.10}100%{transform:translateY(-4vh) scale(1.15);opacity:.18}}
 @media(max-width:800px){.ambient-matter i:nth-child(n+7){display:none}}
 @media(prefers-reduced-motion:reduce){body .ambient-matter i{animation:none!important}}
+
+/* Crystal facets, unlike the colder semiconductor surfaces, retain static outlines. */
+[data-substance-material=semiconductor] .ambient-matter i{animation:none;background:linear-gradient(125deg,transparent 25%,var(--substance-highlight) 48%,currentColor 51%,transparent 73%)}
+.in-game[data-substance-material=fuming] .played{background:linear-gradient(0deg,color-mix(in srgb,var(--substance-color) 12%,white) 0 22%,#fff 23% 100%)}
