@@ -161,3 +161,51 @@
  .in-game .hand-actions button{min-height:36px}
  .in-game #composer-candidates .candidate-list{max-height:82px}
 }
+
+/* Remaining hands are grouped by element; quantities preserve every remaining card. */
+.in-game .player:has(.revealed-hand){align-self:stretch;align-items:flex-start;overflow:hidden}
+.in-game .player:has(.revealed-hand)>div{min-width:0;width:100%;min-height:0;max-height:100%;display:flex;flex-direction:column}
+.revealed-hand{display:flex;flex-wrap:wrap;gap:3px;overflow:auto;min-height:0;padding:4px 1px;scrollbar-width:thin;overscroll-behavior:contain}
+.mini-atom{display:flex;align-items:center;justify-content:center;gap:3px;flex:0 0 auto;padding:4px;border:1px solid #94a3b844;border-radius:4px;background:var(--mini-bg);color:var(--mini-ink);font-size:13px;line-height:1.2}
+.mini-atom small{font-size:9px}.empty-hand{font-size:10px;color:#087a58}
+/* Ambient material stays behind the whole game and never intercepts input. */
+body.in-game[data-substance-phase]{background:color-mix(in srgb,var(--substance-color) 16%,#f7f9fa);transition:background 700ms ease}
+.in-game[data-substance-phase] .table{background:color-mix(in srgb,var(--substance-color) 20%,#f4f8f6);border-color:color-mix(in srgb,var(--substance-color) 35%,#dce7e2)}
+.in-game[data-substance-phase] .played{border-color:color-mix(in srgb,var(--substance-color) 40%,#dce7e2);box-shadow:0 6px 24px color-mix(in srgb,var(--substance-color) 18%,transparent)}
+.ambient-matter{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0;color:var(--substance-color)}
+.in-game #root{position:relative;z-index:1}
+.ambient-matter i{position:absolute;left:calc(7% + var(--i)*11%);top:calc(12% + var(--i)*8%);opacity:.12;animation:ambient-drift 16s ease-in-out infinite alternate;animation-delay:calc(var(--i)*-2s)}
+[data-substance-phase=gas] .ambient-matter i{width:22vw;height:22vw;border-radius:50%;background:radial-gradient(currentColor,transparent 70%);filter:blur(14px)}
+[data-substance-phase=liquid] .ambient-matter i{width:30vw;height:12vw;border:2px solid currentColor;border-radius:50%;animation-name:ambient-ripple}
+[data-substance-phase=solid] .ambient-matter i{width:36px;height:36px;border:1px solid currentColor;background:linear-gradient(135deg,transparent,currentColor);transform:rotate(35deg);animation:none;opacity:.1}
+@keyframes ambient-drift{to{transform:translate(5vw,-5vh) scale(1.3)}}
+@keyframes ambient-ripple{from{transform:scale(.65);opacity:.03}to{transform:scale(1.3);opacity:.15}}
+@media(prefers-reduced-motion:reduce){.ambient-matter i{animation:none}body.in-game[data-substance-phase]{transition:none}}
+@media(max-width:800px){.mini-atom{font-size:11px;padding:3px 2px;gap:2px}.mini-atom small{font-size:8px}.revealed-hand{gap:2px}}
+
+.in-game .player:has(.revealed-hand) .player-name,.in-game .player:has(.revealed-hand) .player-cards{flex-shrink:0}
+.in-game.game-finished .hand-actions,.in-game.game-finished #turn-countdown{display:none}
+@media(min-height:541px){
+ .in-game.game-finished #root{grid-template-rows:auto auto minmax(260px,1.4fr) auto minmax(90px,.6fr)}
+ .in-game.game-finished .table{grid-template-columns:170px minmax(0,1fr) 170px}
+}
+@media(max-width:800px) and (min-height:541px){
+ .in-game.game-finished .table{grid-template-columns:78px minmax(0,1fr) 78px}
+}
+
+/* Material cues: restrained reflections, facets and grains, no reaction/fire imagery. */
+[data-substance-material=metal] .ambient-matter i{width:8vw;height:65vh;top:8%;border:0;border-radius:0;opacity:.1;background:linear-gradient(90deg,transparent,var(--substance-highlight),currentColor,transparent);transform:rotate(25deg);animation:metal-reflection 18s ease-in-out infinite alternate}
+[data-substance-material=crystal] .ambient-matter i{clip-path:polygon(25% 0,80% 8%,100% 60%,55% 100%,0 65%);background:linear-gradient(135deg,var(--substance-highlight),currentColor 50%,transparent);animation:facet-light 10s ease-in-out infinite alternate}
+[data-substance-material=powder] .ambient-matter i{width:90px;height:65px;border:0;transform:none;background:radial-gradient(circle,currentColor 1px,transparent 2px);background-size:8px 9px;opacity:.11;animation:none}
+[data-substance-material=graphite] .ambient-matter i{width:100px;height:45px;border:0;background:repeating-linear-gradient(0deg,currentColor 0 1px,transparent 1px 7px);transform:rotate(-25deg);animation:none}
+[data-substance-material=viscous] .ambient-matter i{width:18vw;height:35vh;border-radius:42% 58% 55% 45%;border:1px solid currentColor;background:linear-gradient(110deg,transparent,var(--substance-highlight),transparent);animation:slow-flow 24s ease-in-out infinite alternate}
+[data-substance-material=mercury] .ambient-matter i{width:8vw;height:8vw;border:0;border-radius:50%;background:radial-gradient(circle at 32% 25%,white 4%,var(--substance-highlight) 16%,currentColor 40%,#495969 70%,transparent 72%);opacity:.15;animation:slow-flow 20s ease-in-out infinite alternate}
+.in-game[data-substance-material=metal] .played,.in-game[data-substance-material=mercury] .played{background:linear-gradient(120deg,#ffffff 15%,color-mix(in srgb,var(--substance-color) 14%,white) 42%,var(--substance-highlight) 49%,#fff 60%)}
+.in-game[data-substance-material=powder] .played{background:radial-gradient(color-mix(in srgb,var(--substance-color) 12%,white) .7px,transparent 1px) 0 0/5px 5px,#fff}
+.substance-effect.powder i{border-radius:50%;clip-path:none;width:4px;height:4px}
+.substance-effect.metal,.substance-effect.mercury{background:linear-gradient(115deg,transparent 20%,color-mix(in srgb,var(--effect-color) 14%,transparent) 45%,#ffffff66 50%,transparent 65%)}
+@keyframes metal-reflection{to{transform:translateX(4vw) rotate(25deg);opacity:.17}}
+@keyframes facet-light{to{opacity:.19}}
+@keyframes slow-flow{to{transform:translateY(3vh) scale(.95,1.08)}}
+@media(max-width:800px){.ambient-matter i:nth-child(n+7){display:none}}
+@media(prefers-reduced-motion:reduce){body .ambient-matter i{animation:none!important}}

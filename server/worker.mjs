@@ -60,6 +60,7 @@ function snapshot(room, revision, member) {
    table: g.table,
    hand: g.hands[me],
    handCounts: g.hands.map(h => h.length),
+   ...(g.winner !== null && room.status === 'finished' ? {revealedHands: g.hands} : {}),
    stockCount: g.stock.length,
    discardCount: g.discard.length,
    dryTurns: g.dryTurns,
@@ -247,9 +248,12 @@ async function handle(req, env) {
    for (const m of room.members) m.ready = m.id === room.host;
    break;
   case 'leave':
-   if (room.status === 'playing') fail('正在对局，离开页面后可重新进入；或请房主结束本局');
+   // Seat indices belong to this game. Clear it before removing any seat.
+   room.game = null;
+   room.status = 'waiting';
    room.members.splice(me, 1);
    if (host && room.members.length) room.host = room.members[0].id;
+   for (const m of room.members) m.ready = m.id === room.host;
    room.proposals = [];
    break;
   case 'remove':

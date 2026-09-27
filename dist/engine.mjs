@@ -1,17 +1,23 @@
 import {ELEMENTS,SUBSTANCES,BY_KEY,countCards,keyOf,atomCount,massOf,expand,massText} from './chemistry.mjs';
 export function seededRandom(seed){let t=seed>>>0;return()=>{t+=0x6D2B79F5;let x=Math.imul(t^t>>>15,t|1);x^=x+Math.imul(x^x>>>7,x|61);return((x^x>>>14)>>>0)/4294967296;};}
 export function shuffle(a,rng=Math.random){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-export function createPool(){
- const total=1800,sum=Object.values(ELEMENTS).reduce((n,e)=>n+e.weight,0);
- const rows=Object.entries(ELEMENTS).map(([e,v])=>({e,n:Math.floor(v.weight/sum*total),fraction:v.weight/sum*total%1}));
+const compoundCoverage=Object.fromEntries(Object.keys(ELEMENTS).map(e=>[e,SUBSTANCES.filter(s=>Object.keys(s.counts).length>1&&s.counts[e]).length]));
+const nobleGases=new Set(['He','Ne','Ar','Kr','Xe','Rn']);
+// B needs partners in the built-in library, not just a playable single atom.
+export const relayWeight=e=>!compoundCoverage[e]?0:nobleGases.has(e)?.3:Math.min(1,compoundCoverage[e]/8);
+export function createPool(mode='A'){
+ const weight=e=>ELEMENTS[e].weight*(mode==='B'?relayWeight(e):1);
+ const total=1800,sum=Object.keys(ELEMENTS).reduce((n,e)=>n+weight(e),0);
+ const rows=Object.keys(ELEMENTS).map(e=>({e,n:Math.floor(weight(e)/sum*total),fraction:weight(e)/sum*total%1}));
  let remainder=total-rows.reduce((n,r)=>n+r.n,0);
  for(const r of [...rows].sort((a,b)=>b.fraction-a.fraction||ELEMENTS[a.e].z-ELEMENTS[b.e].z)){if(remainder--<=0)break;r.n++;}
  return rows.flatMap(r=>Array(r.n).fill(r.e));
 }
 export const POOL=createPool();
-export function generateDeck(size,rng=Math.random,strategy='mixed'){
+export const RELAY_POOL=createPool('B');
+export function generateDeck(size,rng=Math.random,strategy='mixed',mode='A'){
  if(!Number.isInteger(size)||size<16||size>108)throw Error('牌库张数需要为 16—108 的整数');
- let pool=shuffle(POOL,rng);if(strategy==='random')return{cards:pool.slice(0,size),seeds:[]};
+ let pool=shuffle(mode==='B'?RELAY_POOL:POOL,rng);if(strategy==='random')return{cards:pool.slice(0,size),seeds:[]};
  // A small rotating palette prevents 19 unrelated elements competing for a short deck.
  const palette=new Set([
   'H','C','O','N','Cl','Na',
@@ -30,7 +36,7 @@ export function generateDeck(size,rng=Math.random,strategy='mixed'){
 }
 export function newGame({mode='A',size=108,initialHand=9,hintsEnabled=true,strategy='random',seed=Date.now(),players=3,custom=[],structureMode='quick',relayRescue=true}={}){
  if(mode==='B'){size=108;if(!Number.isInteger(initialHand)||initialHand<2||initialHand>12)throw Error('起手牌数需要为 2—12 的整数');}else initialHand=null;
- if(!['A','B'].includes(mode))throw Error('未知模式');if(!Number.isInteger(players)||players<2||players>6)throw Error('需要 2—6 位玩家');const rng=seededRandom(seed);const deck=generateDeck(size,rng,strategy);const hands=Array.from({length:players},()=>[]),stock=[...deck.cards];
+ if(!['A','B'].includes(mode))throw Error('未知模式');if(!Number.isInteger(players)||players<2||players>6)throw Error('需要 2—6 位玩家');const rng=seededRandom(seed);const deck=generateDeck(size,rng,strategy,mode);const hands=Array.from({length:players},()=>[]),stock=[...deck.cards];
  if(mode==='A'){let i=0;while(stock.length)hands[i++%players].push(stock.pop());}else for(let n=0;n<initialHand;n++)for(const h of hands)h.push(stock.pop());
  const context=mode==='B'?[stock.pop()]:[];
  return{version:3,initialHand,hintsEnabled,mode,size,strategy,structureMode,relayRescue,seed,hands,stock,discard:[],context,table:null,current:0,lastPlayer:null,passes:0,dryTurns:0,winner:null,turn:1,history:[],deck:deck.cards,seeds:deck.seeds,custom};
