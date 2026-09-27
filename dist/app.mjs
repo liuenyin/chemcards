@@ -14,6 +14,8 @@ const setStorage=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
 let room=null,session=null,localGame=null,selection={},activeMove=null,sort='element',pollTimer=null,botTimer=null,turnTimerId=null,turnCountdown=30,busy=false,toastTimer,modalView='',entranceMode='A',hint=0,lastError='';
 let handView=null,dealPending=false,candidatesOpen=false,serverOffset=0;
 
+const poolCountsByMode={A:countCards(POOL),B:countCards(RELAY_POOL)};
+
 const title=m=>m==='A'?'质量竞技':'化学接龙';
 const allSubstances=()=>[...SUBSTANCES,...(room?.custom||[])];
 
@@ -454,7 +456,7 @@ function openVotes(){
  $$('[data-vote]').forEach(b=>b.onclick=run(()=>action('vote',{proposalId:b.dataset.vote,accept:b.dataset.accept==='true'})));
 }
 
-function isRareMove(move){if(move.rescue)return false;const counts=parseFormula(move.formula);return atomCount(counts)>1&&Object.keys(counts).some(e=>(poolCounts[e]||0)<=4);}
+function isRareMove(move){if(move.rescue)return false;const poolCounts=poolCountsByMode[room?.options.mode]||poolCountsByMode.A;const counts=parseFormula(move.formula);return atomCount(counts)>1&&Object.keys(counts).some(e=>(poolCounts[e]||0)<=4);}
 function recordDiscoveries(next){
  const saved=getStorage('chemcards-discoveries')||{};let changed=false;
  for(const h of next.game?.history||[]){

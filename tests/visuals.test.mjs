@@ -17,3 +17,6 @@ assert.equal(substanceTheme('W(CO)6'),null);
 console.log('Visual themes passed: registry entries, isomer-specific states, hydrate separation, neutral fallback; '+SUBSTANCES.filter(s=>substanceTheme(s.formula,s.name)).length+' substances covered.');
 
 for(const [formula,name,material]of [['Au','金','metal'],['CuSO4·5H2O','胆矾','crystal'],['CuO','氧化铜','powder'],['C','石墨','graphite'],['Hg','汞','mercury'],['C3H8O3','丙三醇','viscous']])assert.equal(substanceTheme(formula,name).material,material);
+
+assert.equal(substanceTheme('FeO').material,'powder');
+assert.equal(substanceTheme('FeO').label,'黑色固体');

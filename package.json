@@ -8,7 +8,7 @@
     "start": "node scripts/serve.mjs",
     "db:generate": "drizzle-kit generate",
     "test": "node tests/engine.test.mjs && node tests/multiplayer.test.mjs && node tests/repair.test.mjs && node tests/hydrogen-layout.test.mjs && node tests/endgame.test.mjs && node tests/visuals.test.mjs",
-    "test:browser": "node tests/hand.test.mjs && node tests/browser.test.mjs && node tests/experience.test.mjs && node tests/design.test.mjs && node tests/viewport.test.mjs && node tests/table-layout.test.mjs && node tests/gameplay.test.mjs && node tests/endgame-browser.test.mjs && node tests/visuals-browser.test.mjs",
+    "test:browser": "node tests/hand.test.mjs && node tests/browser.test.mjs && node tests/experience.test.mjs && node tests/design.test.mjs && node tests/viewport.test.mjs && node tests/table-layout.test.mjs && node tests/gameplay.test.mjs && node tests/endgame-browser.test.mjs && node tests/visuals-browser.test.mjs && node tests/practice.test.mjs",
     "test:production": "node tests/production.test.mjs"
   },
   "devDependencies": {

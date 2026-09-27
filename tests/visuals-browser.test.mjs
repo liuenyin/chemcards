@@ -16,12 +16,12 @@ try{
   sound.setSoundSettings({effects:true});v.applySubstanceTheme({formula:'C2H6O',name:'未收录异构体'});const unknown=!document.body.dataset.substancePhase;
   return{count:covered.length,phases,material,layers,pointer,off,unknown};
  });
- assert.equal(result.count,126);assert.deepEqual(result.phases.map(p=>p[0]),['liquid','gas','liquid','gas']);assert.deepEqual(result.phases.map(p=>p[1]),['无色液体','无色气体','无色液体','无色气体']);assert.equal(result.material,'gas');assert.equal(result.layers,1);assert.equal(result.pointer,'none');assert(result.off&&result.unknown);await page.emulateMedia({reducedMotion:'reduce'});
+ assert.equal(result.count,127);assert.deepEqual(result.phases.map(p=>p[0]),['liquid','gas','liquid','gas']);assert.deepEqual(result.phases.map(p=>p[1]),['无色液体','无色气体','无色液体','无色气体']);assert.equal(result.material,'gas');assert.equal(result.layers,1);assert.equal(result.pointer,'none');assert(result.off&&result.unknown);await page.emulateMedia({reducedMotion:'reduce'});
  for(const [formula,name,material]of [['Au','金','metal'],['CuO','氧化铜','powder'],['Hg','汞','mercury'],['C3H8O3','丙三醇','viscous'],['CuSO4·5H2O','胆矾','crystal']]){
   await page.evaluate(async move=>(await import('/visuals.mjs')).applySubstanceTheme(move),{formula,name});
   assert.equal(await page.locator('body').getAttribute('data-substance-material'),material);
   assert.equal(await page.locator('.ambient-matter i').first().evaluate(e=>getComputedStyle(e).animationName),'none');
  }
  assert.deepEqual(errors,[]);
- console.log('Browser themes passed: all 126 entries, organic phase/caption transitions, single non-interactive layer, off switch and unknown fallback.');
+ console.log('Browser themes passed: all 127 entries, organic phase/caption transitions, single non-interactive layer, off switch and unknown fallback.');
 }finally{await browser.close();}

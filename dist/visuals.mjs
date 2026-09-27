@@ -27,6 +27,7 @@ export const FORMULA_THEMES={
  He:['#c1cbd0','gas','无色气体'],Ne:['#c1cbd0','gas','无色气体'],Ar:['#c1cbd0','gas','无色气体'],Kr:['#c1cbd0','gas','无色气体'],Xe:['#c1cbd0','gas','无色气体'],
  CO:['#c1cbd0','gas','无色气体'],NO:['#c1cbd0','gas','无色气体'],N2O:['#c1cbd0','gas','无色气体'],
  SO2:['#c1cbd0','gas','无色气体'],H2S:['#c1cbd0','gas','无色气体'],SF6:['#c1cbd0','gas','无色气体'],
+ FeO:['#333b42','solid','黑色固体'],
  CuO:['#373e43','solid','黑色固体'],Fe2O3:['#a4513d','solid','红棕色固体'],Fe3O4:['#394149','solid','黑色固体'],
  Cr2O3:['#4e8454','solid','绿色固体'],MnO2:['#494139','solid','棕黑色固体'],
  MgO:['#cdd0d2','solid','白色固体'],CaO:['#cdd0d2','solid','白色固体'],ZnO:['#cdd0d2','solid','白色固体'],TiO2:['#cdd0d2','solid','白色固体'],Al2O3:['#cdd0d2','solid','白色固体'],
