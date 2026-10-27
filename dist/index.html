@@ -1,1 +1,61 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f8fafc"><meta name="description" content="与朋友在线玩化学扑克牌。原子组牌、质量竞技、化学接龙与自由结构画布。"><title>化学扑克牌</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23ffffff' stroke='%23cbd5e1' stroke-width='2'/%3E%3Ctext x='9' y='14' text-anchor='middle' font-family='monospace' font-size='9' font-weight='bold' fill='%2364748b'%3E6%3C/text%3E%3Ctext x='21' y='29' text-anchor='middle' font-family='Georgia, serif' font-weight='bold' font-size='22' fill='%23059669'%3EC%3C/text%3E%3C/svg%3E"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="cards.css"><link rel="stylesheet" href="layout.css"><script type="module" src="app.mjs"></script></head><body><header class="topbar"><a href="./" class="brand"><span class="logo">C<span>6</span></span><strong>化学扑克牌</strong></a><div class="top-actions"><span id="connection" class="connection">未加入房间</span><button class="quiet" id="collection-btn">图鉴</button><button class="quiet" id="feedback-btn" aria-label="声音与触感">声音</button><button class="quiet" id="rules-btn">规则</button></div></header><main id="root"></main><dialog id="modal"><div id="modal-body"></div></dialog><div id="toast" role="status" aria-live="polite"></div></body></html>
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f8fafc"><meta name="description" content="与朋友在线玩化学扑克牌。原子组牌、质量竞技、化学接龙与自由结构画布。"><title>化学扑克牌</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23ffffff' stroke='%23cbd5e1' stroke-width='2'/%3E%3Ctext x='9' y='14' text-anchor='middle' font-family='monospace' font-size='9' font-weight='bold' fill='%2364748b'%3E6%3C/text%3E%3Ctext x='21' y='29' text-anchor='middle' font-family='Georgia, serif' font-weight='bold' font-size='22' fill='%23059669'%3EC%3C/text%3E%3C/svg%3E"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="cards.css"><link rel="stylesheet" href="layout.css"><script type="module" src="app.mjs"></script></head><body>
+<!-- lg37-domain-migration -->
+<script>
+(() => {
+  const destinations = {
+    'leudzb.zeabur.app': 'bzduel.lg37.com',
+    'bj8z.zeabur.app': 'bj8z.lg37.com',
+    'chemcards.zeabur.app': 'chem.lg37.com',
+  };
+  const hostname = destinations[window.location.hostname];
+  if (!hostname || document.getElementById('lg37-domain-notice')) return;
+  const target = new URL(window.location.href);
+  target.protocol = 'https:';
+  target.hostname = hostname;
+  target.port = '';
+  let seconds = 5;
+  let timer;
+  const host = document.createElement('div');
+  host.id = 'lg37-domain-notice';
+  host.style.cssText = 'position:fixed;inset:0 0 auto;z-index:2147483647;display:block;';
+  const root = host.attachShadow({ mode: 'open' });
+  root.innerHTML = `<style>
+    :host{color-scheme:light} *{box-sizing:border-box}
+    section{padding:12px 16px;background:#fff7df;color:#382c12;border-bottom:1px solid #e4c878;font:14px/1.6 system-ui,sans-serif;text-align:center;box-shadow:0 2px 8px #0001}
+    a{color:#815000;font-weight:700;overflow-wrap:anywhere}button{margin-left:12px;padding:4px 10px;border:1px solid #b89650;border-radius:6px;background:#fff;color:#382c12;font:inherit;cursor:pointer}
+    small{display:block;font-size:12px;margin-top:3px}a:focus-visible,button:focus-visible{outline:2px solid #815000;outline-offset:3px}
+  </style><section aria-label="网站域名变更提示"><strong>网站地址已更新：</strong><a></a>。<span role="status"></span><button type="button">暂不跳转</button><small>请收藏新地址。旧域名中的本地存档和设置不会自动同步；如需保留，请先暂不跳转。</small></section>`;
+  const link = root.querySelector('a');
+  link.href = target.href;
+  link.textContent = hostname;
+  const status = root.querySelector('[role="status"]');
+  const button = root.querySelector('button');
+  const spacer = document.createElement('div');
+  spacer.setAttribute('aria-hidden', 'true');
+  document.body.prepend(spacer, host);
+  const resize = () => { spacer.style.height = host.getBoundingClientRect().height + 'px'; };
+  resize();
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(resize).observe(host);
+  else window.addEventListener('resize', resize);
+  let paused = false;
+  try { paused = sessionStorage.getItem('lg37-domain-redirect-paused') === '1'; } catch {}
+  const pause = () => {
+    clearInterval(timer);
+    status.textContent = '已暂停自动跳转，可点击新地址进入。';
+    button.hidden = true;
+    try { sessionStorage.setItem('lg37-domain-redirect-paused', '1'); } catch {}
+  };
+  button.addEventListener('click', pause);
+  if (paused) { pause(); return; }
+  status.textContent = `${seconds} 秒后自动前往新地址。`;
+  timer = setInterval(() => {
+    seconds -= 1;
+    if (seconds <= 0) {
+      clearInterval(timer);
+      window.location.replace(target.href);
+    } else status.textContent = `${seconds} 秒后自动前往新地址。`;
+  }, 1000);
+})();
+
+</script>
+<header class="topbar"><a href="./" class="brand"><span class="logo">C<span>6</span></span><strong>化学扑克牌</strong></a><div class="top-actions"><span id="connection" class="connection">未加入房间</span><button class="quiet" id="collection-btn">图鉴</button><button class="quiet" id="feedback-btn" aria-label="声音与触感">声音</button><button class="quiet" id="rules-btn">规则</button></div></header><main id="root"></main><dialog id="modal"><div id="modal-body"></div></dialog><div id="toast" role="status" aria-live="polite"></div></body></html>
